@@ -1,0 +1,223 @@
+name: Build 4Eyes Installers
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v1.0.0
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+
+  # -------------------------
+  # macOS Build → .dmg
+  # -------------------------
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller pillow pystray screeninfo rumps dmgbuild
+
+      - name: Create icon assets
+        run: |
+          mkdir -p assets
+          mkdir -p assets/icon.iconset
+          sips -z 16 16 vision-extension/icon128.png --out assets/icon.iconset/icon_16x16.png
+          sips -z 32 32 vision-extension/icon128.png --out assets/icon.iconset/icon_32x32.png
+          sips -z 48 48 vision-extension/icon128.png --out assets/icon.iconset/icon_48x48.png
+          sips -z 64 64 vision-extension/icon128.png --out assets/icon.iconset/icon_64x64.png
+          sips -z 128 128 vision-extension/icon128.png --out assets/icon.iconset/icon_128x128.png
+          sips -z 256 256 vision-extension/icon128.png --out assets/icon.iconset/icon_256x256.png
+          iconutil -c icns assets/icon.iconset -o assets/icon.icns
+
+      - name: Build Mac app
+        run: |
+          pyinstaller 4Eyes-installer/4Eyes.spec --clean --noconfirm
+
+      - name: Create DMG
+        run: |
+          cat > dmg_settings.py << 'EOF'
+          import os
+          application = 'dist/4Eyes.app'
+          appname = os.path.basename(application)
+          files = [application]
+          symlinks = {'Applications': '/Applications'}
+          icon_locations = {
+            appname: (150, 150),
+            'Applications': (350, 150)
+          }
+          background = 'builtin-arrow'
+          window_rect = ((200, 200), (500, 300))
+          icon_size = 80
+          EOF
+          dmgbuild -s dmg_settings.py "4Eyes" dist/4Eyes.dmg
+
+      - name: Upload Mac artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 4Eyes-mac
+          path: dist/4Eyes.dmg
+
+  # -------------------------
+  # Windows Build → .exe
+  # -------------------------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller pillow pystray screeninfo screen-brightness-control
+
+      - name: Create icon assets
+        run: |
+          mkdir -p assets
+          copy vision-extension\icon128.png assets\icon.png
+        shell: cmd
+
+      - name: Build Windows exe
+        run: |
+          pyinstaller 4Eyes-installer/4Eyes.spec --clean --noconfirm
+
+      - name: Install NSIS
+        run: choco install nsis -y
+
+      - name: Create Windows installer
+        run: makensis 4Eyes-installer/installer.nsi
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 4Eyes-windows
+          path: dist/4Eyes_Setup.exe
+
+  # -------------------------
+  # Linux Build → .deb
+  # -------------------------
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y x11-xserver-utils python3-xlib dpkg-dev
+
+      - name: Install Python dependencies
+        run: |
+          pip install pyinstaller pillow pystray screeninfo screen-brightness-control
+
+      - name: Create icon assets
+        run: |
+          mkdir -p assets
+          cp vision-extension/icon128.png assets/icon.png
+
+      - name: Build Linux binary
+        run: |
+          pyinstaller 4Eyes-installer/4Eyes.spec --clean --noconfirm
+
+      - name: Create .deb package
+        run: |
+          mkdir -p deb_build/DEBIAN
+          mkdir -p deb_build/usr/local/bin
+          mkdir -p deb_build/usr/share/applications
+          mkdir -p deb_build/usr/share/icons/hicolor/128x128/apps
+
+          cp dist/4Eyes deb_build/usr/local/bin/4eyes
+          chmod +x deb_build/usr/local/bin/4eyes
+          cp assets/icon.png deb_build/usr/share/icons/hicolor/128x128/apps/4eyes.png
+
+          cat > deb_build/usr/share/applications/4eyes.desktop << 'EOF'
+          [Desktop Entry]
+          Name=4Eyes
+          Comment=Vision Adaptive Display Pro
+          Exec=4eyes
+          Icon=4eyes
+          Terminal=false
+          Type=Application
+          Categories=Utility;Accessibility;
+          EOF
+
+          cat > deb_build/DEBIAN/control << 'EOF'
+          Package: 4eyes
+          Version: 1.0.0
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: 4Eyes <support@4eyes.app>
+          Description: Vision Adaptive Display Pro
+           Adapts your display to your eye prescription.
+          EOF
+
+          dpkg-deb --build deb_build dist/4Eyes_1.0.0_amd64.deb
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 4Eyes-linux
+          path: dist/4Eyes_1.0.0_amd64.deb
+
+  # -------------------------
+  # Create GitHub Release
+  # -------------------------
+  release:
+    needs: [build-mac, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: 4Eyes ${{ github.ref_name }}
+          body: |
+            ## 4Eyes ${{ github.ref_name }}
+
+            Vision Adaptive Display Pro — calibrate your screen to your eye prescription.
+
+            ### Downloads
+            - **Mac** → `4Eyes.dmg` — drag to Applications
+            - **Windows** → `4Eyes_Setup.exe` — run installer
+            - **Linux** → `4Eyes_1.0.0_amd64.deb` — `sudo dpkg -i`
+
+            ### Also install the Chrome Extension
+            Install from the Chrome Web Store to apply your settings to every website.
+
+            ### What's new
+            - Real-time prescription-based display calibration
+            - Axis-aware astigmatism detection
+            - Chrome extension integration
+            - System tray support on all platforms
+            - Multi-monitor control
+          files: |
+            4Eyes-mac/4Eyes.dmg
+            4Eyes-windows/4Eyes_Setup.exe
+            4Eyes-linux/4Eyes_1.0.0_amd64.deb
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
