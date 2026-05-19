@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vision Adaptive</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161a23;
+    --border: #252a38;
+    --accent: #5b8dee;
+    --accent2: #a78bfa;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --success: #34d399;
+    --error: #f87171;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    width: 300px;
+    padding: 16px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    --webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--error);
+  }
+
+  .status-dot.connected { background: var(--success); animation: pulse 1.5s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding: 8px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  .toggle-label { font-size: 0.85rem; }
+
+  .toggle {
+    position: relative;
+    width: 38px;
+    height: 22px;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 22px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+
+  input:checked + .toggle-slider { background: var(--accent); }
+  input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .chip-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .chip-value { font-size: 0.9rem; color: var(--accent); font-weight: 600; margin-top: 2px; }
+
+  .btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 6px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+  }
+
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .btn:hover { opacity: 0.85; }
+
+  .no-settings {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="title">Vision Adaptive</span>
+  <div class="status-dot" id="status-dot"></div>
+</div>
+
+<div class="status-row">
+  <span id="status-text">Connecting to app...</span>
+</div>
+
+<div class="toggle-row">
+  <span class="toggle-label">Apply to all websites</span>
+  <label class="toggle">
+    <input type="checkbox" id="enable-toggle" checked/>
+    <span class="toggle-slider"></span>
+  </label>
+</div>
+
+<div id="settings-display">
+  <div class="no-settings" id="no-settings">
+    No prescription loaded yet.<br/>Open Vision Adaptive and enter your prescription.
+  </div>
+  <div class="settings-grid" id="settings-grid" style="display:none">
+    <div class="chip">
+      <div class="chip-label">Brightness</div>
+      <div class="chip-value" id="chip-brightness">--</div>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Text Scale</div>
+      <div class="chip-value" id="chip-scale">--</div>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Contrast</div>
+      <div class="chip-value" id="chip-contrast">--</div>
+    </div>
+    <div class="chip">
+      <div class="chip-label">Spacing</div>
+      <div class="chip-value" id="chip-spacing">--</div>
+    </div>
+  </div>
+</div>
+
+<button class="btn btn-primary" id="open-app">Open Dashboard</button>
+<button class="btn btn-secondary" id="refresh-btn">Refresh Settings</button>
+
+<script src="popup.js"></script>
+</body>
+</html>
