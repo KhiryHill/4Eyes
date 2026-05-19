@@ -8,9 +8,6 @@ on:
 
 jobs:
 
-  # -------------------------
-  # macOS Build
-  # -------------------------
   build-mac:
     runs-on: macos-latest
     steps:
@@ -23,29 +20,12 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install pyinstaller pillow pystray screeninfo rumps dmgbuild
+        run: pip install pyinstaller pillow pystray screeninfo rumps dmgbuild
 
       - name: Create icon assets
         run: |
           mkdir -p assets/icon.iconset
-          python3 -c "
-          from PIL import Image, ImageDraw
-          import os
-          os.makedirs('assets/icon.iconset', exist_ok=True)
-          for size in [16, 32, 48, 64, 128, 256]:
-              img = Image.new('RGBA', (size, size), (0,0,0,0))
-              draw = ImageDraw.Draw(img)
-              m = max(1, size//8)
-              draw.ellipse([m, size//3, size-m, size*2//3], fill=(91,141,238))
-              cx, cy = size//2, size//2
-              r = max(2, size//5)
-              draw.ellipse([cx-r, cy-r, cx+r, cy+r], fill=(13,15,20))
-              img.save(f'assets/icon.iconset/icon_{size}x{size}.png')
-          img = Image.open('assets/icon.iconset/icon_128x128.png')
-          img.save('assets/icon.png')
-          print('Icons generated')
-          "
+          python3 -c "from PIL import Image, ImageDraw; import os; os.makedirs('assets/icon.iconset', exist_ok=True); [Image.new('RGBA', (s,s), (0,0,0,0)) for s in [16]]; img = Image.new('RGBA', (256,256), (0,0,0,0)); draw = ImageDraw.Draw(img); draw.ellipse([32,85,224,170], fill=(91,141,238)); draw.ellipse([102,102,154,154], fill=(13,15,20)); [img.resize((s,s)).save(f'assets/icon.iconset/icon_{s}x{s}.png') for s in [16,32,48,64,128,256]]; img.resize((128,128)).save('assets/icon.png')"
           iconutil -c icns assets/icon.iconset -o assets/icon.icns
 
       - name: Build Mac app
@@ -53,20 +33,19 @@ jobs:
 
       - name: Create DMG
         run: |
-          cat > dmg_settings.py << 'EOF'
-          import os
-          application = 'dist/4Eyes.app'
-          appname = os.path.basename(application)
+          python3 -c "
+          content = '''
+          application = \"dist/4Eyes.app\"
+          appname = \"4Eyes.app\"
           files = [application]
-          symlinks = {'Applications': '/Applications'}
-          icon_locations = {
-            appname: (150, 150),
-            'Applications': (350, 150)
-          }
-          background = 'builtin-arrow'
+          symlinks = {\"Applications\": \"/Applications\"}
+          icon_locations = {appname: (150, 150), \"Applications\": (350, 150)}
+          background = \"builtin-arrow\"
           window_rect = ((200, 200), (500, 300))
           icon_size = 80
-          EOF
+          '''
+          open('dmg_settings.py', 'w').write(content)
+          "
           dmgbuild -s dmg_settings.py "4Eyes" dist/4Eyes.dmg
 
       - name: Upload Mac artifact
@@ -75,9 +54,6 @@ jobs:
           name: 4Eyes-mac
           path: dist/4Eyes.dmg
 
-  # -------------------------
-  # Windows Build
-  # -------------------------
   build-windows:
     runs-on: windows-latest
     steps:
@@ -94,28 +70,7 @@ jobs:
 
       - name: Create icon assets
         run: |
-          mkdir -p assets
-          python3 -c "
-          from PIL import Image, ImageDraw
-          import os
-          os.makedirs('assets', exist_ok=True)
-          for size in [16, 48, 128, 256]:
-              img = Image.new('RGBA', (size, size), (0,0,0,0))
-              draw = ImageDraw.Draw(img)
-              m = max(1, size//8)
-              draw.ellipse([m, size//3, size-m, size*2//3], fill=(91,141,238))
-              cx, cy = size//2, size//2
-              r = max(2, size//5)
-              draw.ellipse([cx-r, cy-r, cx+r, cy+r], fill=(13,15,20))
-              img.save(f'assets/icon_{size}.png')
-          # Save main icon
-          img = Image.open('assets/icon_128.png')
-          img.save('assets/icon.png')
-          # Create ICO with multiple sizes
-          images = [Image.open(f'assets/icon_{s}.png') for s in [16, 48, 128, 256]]
-          images[0].save('assets/icon.ico', format='ICO', sizes=[(16,16),(48,48),(128,128),(256,256)], append_images=images[1:])
-          print('Icons generated')
-          "
+          python3 -c "from PIL import Image, ImageDraw; import os; os.makedirs('assets', exist_ok=True); img = Image.new('RGBA', (256,256), (0,0,0,0)); draw = ImageDraw.Draw(img); draw.ellipse([32,85,224,170], fill=(91,141,238)); draw.ellipse([102,102,154,154], fill=(13,15,20)); img.save('assets/icon.png'); images = [img.resize((s,s)) for s in [16,48,128,256]]; images[0].save('assets/icon.ico', format='ICO', sizes=[(16,16),(48,48),(128,128),(256,256)], append_images=images[1:]); print('Icons done')"
 
       - name: Build Windows exe
         run: pyinstaller 4Eyes.spec --clean --noconfirm
@@ -132,9 +87,6 @@ jobs:
           name: 4Eyes-windows
           path: dist/4Eyes_Setup.exe
 
-  # -------------------------
-  # Linux Build
-  # -------------------------
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -156,23 +108,12 @@ jobs:
 
       - name: Create icon assets
         run: |
-          mkdir -p assets
-          python3 -c "
-          from PIL import Image, ImageDraw
-          import os
-          os.makedirs('assets', exist_ok=True)
-          img = Image.new('RGBA', (128, 128), (0,0,0,0))
-          draw = ImageDraw.Draw(img)
-          draw.ellipse([16, 42, 112, 85], fill=(91,141,238))
-          draw.ellipse([51, 51, 77, 77], fill=(13,15,20))
-          img.save('assets/icon.png')
-          print('Icon generated')
-          "
+          python3 -c "from PIL import Image, ImageDraw; import os; os.makedirs('assets', exist_ok=True); img = Image.new('RGBA', (128,128), (0,0,0,0)); draw = ImageDraw.Draw(img); draw.ellipse([16,42,112,85], fill=(91,141,238)); draw.ellipse([51,51,77,77], fill=(13,15,20)); img.save('assets/icon.png'); print('Icon done')"
 
       - name: Build Linux binary
         run: pyinstaller 4Eyes.spec --clean --noconfirm
 
-      - name: Create .deb package
+      - name: Create deb package
         run: |
           mkdir -p deb_build/DEBIAN
           mkdir -p deb_build/usr/local/bin
@@ -181,26 +122,8 @@ jobs:
           cp dist/4Eyes deb_build/usr/local/bin/4eyes
           chmod +x deb_build/usr/local/bin/4eyes
           cp assets/icon.png deb_build/usr/share/icons/hicolor/128x128/apps/4eyes.png
-          cat > deb_build/usr/share/applications/4eyes.desktop << 'EOF'
-          [Desktop Entry]
-          Name=4Eyes
-          Comment=Vision Adaptive Display Pro
-          Exec=4eyes
-          Icon=4eyes
-          Terminal=false
-          Type=Application
-          Categories=Utility;Accessibility;
-          EOF
-          cat > deb_build/DEBIAN/control << 'EOF'
-          Package: 4eyes
-          Version: 1.0.0
-          Section: utils
-          Priority: optional
-          Architecture: amd64
-          Maintainer: 4Eyes <support@4eyes.app>
-          Description: Vision Adaptive Display Pro
-           Adapts your display to your eye prescription.
-          EOF
+          python3 -c "open('deb_build/usr/share/applications/4eyes.desktop','w').write('[Desktop Entry]\nName=4Eyes\nComment=Vision Adaptive Display Pro\nExec=4eyes\nIcon=4eyes\nTerminal=false\nType=Application\nCategories=Utility;Accessibility;\n')"
+          python3 -c "open('deb_build/DEBIAN/control','w').write('Package: 4eyes\nVersion: 1.0.0\nSection: utils\nPriority: optional\nArchitecture: amd64\nMaintainer: 4Eyes <support@4eyes.app>\nDescription: Vision Adaptive Display Pro\n Adapts your display to your eye prescription.\n')"
           dpkg-deb --build deb_build dist/4Eyes_1.0.0_amd64.deb
 
       - name: Upload Linux artifact
@@ -209,9 +132,6 @@ jobs:
           name: 4Eyes-linux
           path: dist/4Eyes_1.0.0_amd64.deb
 
-  # -------------------------
-  # Create GitHub Release
-  # -------------------------
   release:
     needs: [build-mac, build-windows, build-linux]
     runs-on: ubuntu-latest
@@ -229,198 +149,12 @@ jobs:
             Vision Adaptive Display Pro — calibrate your screen to your eye prescription.
 
             ### Downloads
-            - **Mac** → `4Eyes.dmg` — drag to Applications
-            - **Windows** → `4Eyes_Setup.exe` — run installer
-            - **Linux** → `4Eyes_1.0.0_amd64.deb` — `sudo dpkg -i`
+            - **Mac** → 4Eyes.dmg — drag to Applications
+            - **Windows** → 4Eyes_Setup.exe — run installer
+            - **Linux** → 4Eyes_1.0.0_amd64.deb — sudo dpkg -i
 
             ### Also install the Chrome Extension
             Install from the Chrome Web Store to apply your settings to every website.
-          files: |
-            4Eyes-mac/4Eyes.dmg
-            4Eyes-windows/4Eyes_Setup.exe
-            4Eyes-linux/4Eyes_1.0.0_amd64.deb
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          sips -z 128 128 vision-extension/icon128.png --out assets/icon.iconset/icon_128x128.png
-          sips -z 256 256 vision-extension/icon128.png --out assets/icon.iconset/icon_256x256.png
-          iconutil -c icns assets/icon.iconset -o assets/icon.icns
-
-      - name: Build Mac app
-        run: |
-          pyinstaller 4Eyes.spec --clean --noconfirm
-      - name: Create DMG
-        run: |
-          cat > dmg_settings.py << 'EOF'
-          import os
-          application = 'dist/4Eyes.app'
-          appname = os.path.basename(application)
-          files = [application]
-          symlinks = {'Applications': '/Applications'}
-          icon_locations = {
-            appname: (150, 150),
-            'Applications': (350, 150)
-          }
-          background = 'builtin-arrow'
-          window_rect = ((200, 200), (500, 300))
-          icon_size = 80
-          EOF
-          dmgbuild -s dmg_settings.py "4Eyes" dist/4Eyes.dmg
-
-      - name: Upload Mac artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 4Eyes-mac
-          path: dist/4Eyes.dmg
-
-  # -------------------------
-  # Windows Build → .exe
-  # -------------------------
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          pip install pyinstaller pillow pystray screeninfo screen-brightness-control
-
-      - name: Create icon assets
-        run: |
-          mkdir -p assets
-          copy vision-extension\icon128.png assets\icon.png
-        shell: cmd
-
-      - name: Build Windows exe
-        run: |
-          pyinstaller 4Eyes.spec --clean --noconfirm
-
-      - name: Install NSIS
-        run: choco install nsis -y
-
-      - name: Create Windows installer
-        run: makensis installer.nsi
-
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 4Eyes-windows
-          path: dist/4Eyes_Setup.exe
-
-  # -------------------------
-  # Linux Build → .deb
-  # -------------------------
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y x11-xserver-utils python3-xlib dpkg-dev
-
-      - name: Install Python dependencies
-        run: |
-          pip install pyinstaller pillow pystray screeninfo screen-brightness-control
-
-      - name: Create icon assets
-        run: |
-          mkdir -p assets
-          cp vision-extension/icon128.png assets/icon.png
-        
-      - name: Build Linux binary
-        run: |
-          pyinstaller 4Eyes.spec --clean --noconfirm
-
-      - name: Create .deb package
-        run: |
-          mkdir -p deb_build/DEBIAN
-          mkdir -p deb_build/usr/local/bin
-          mkdir -p deb_build/usr/share/applications
-          mkdir -p deb_build/usr/share/icons/hicolor/128x128/apps
-
-          cp dist/4Eyes deb_build/usr/local/bin/4eyes
-          chmod +x deb_build/usr/local/bin/4eyes
-          cp assets/icon.png deb_build/usr/share/icons/hicolor/128x128/apps/4eyes.png
-
-          cat > deb_build/usr/share/applications/4eyes.desktop << 'EOF'
-          [Desktop Entry]
-          Name=4Eyes
-          Comment=Vision Adaptive Display Pro
-          Exec=4eyes
-          Icon=4eyes
-          Terminal=false
-          Type=Application
-          Categories=Utility;Accessibility;
-          EOF
-
-          cat > deb_build/DEBIAN/control << 'EOF'
-          Package: 4eyes
-          Version: 1.0.0
-          Section: utils
-          Priority: optional
-          Architecture: amd64
-          Maintainer: 4Eyes <support@4eyes.app>
-          Description: Vision Adaptive Display Pro
-           Adapts your display to your eye prescription.
-          EOF
-
-          dpkg-deb --build deb_build dist/4Eyes_1.0.0_amd64.deb
-
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: 4Eyes-linux
-          path: dist/4Eyes_1.0.0_amd64.deb
-
-  # -------------------------
-  # Create GitHub Release
-  # -------------------------
-  release:
-    needs: [build-mac, build-windows, build-linux]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: 4Eyes ${{ github.ref_name }}
-          body: |
-            ## 4Eyes ${{ github.ref_name }}
-
-            Vision Adaptive Display Pro — calibrate your screen to your eye prescription.
-
-            ### Downloads
-            - **Mac** → `4Eyes.dmg` — drag to Applications
-            - **Windows** → `4Eyes_Setup.exe` — run installer
-            - **Linux** → `4Eyes_1.0.0_amd64.deb` — `sudo dpkg -i`
-
-            ### Also install the Chrome Extension
-            Install from the Chrome Web Store to apply your settings to every website.
-
-            ### What's new
-            - Real-time prescription-based display calibration
-            - Axis-aware astigmatism detection
-            - Chrome extension integration
-            - System tray support on all platforms
-            - Multi-monitor control
           files: |
             4Eyes-mac/4Eyes.dmg
             4Eyes-windows/4Eyes_Setup.exe
