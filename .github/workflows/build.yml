@@ -91,7 +91,7 @@ jobs:
 
       - name: Build Windows exe
         run: |
-          ppyinstaller 4Eyes.spec --clean --noconfirm
+          pyinstaller 4Eyes.spec --clean --noconfirm
 
       - name: Install NSIS
         run: choco install nsis -y
