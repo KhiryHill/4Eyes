@@ -39,7 +39,7 @@ jobs:
           iconutil -c icns assets/icon.iconset -o assets/icon.icns
 
       - name: Copy spec file
-        run: cp 4Eyes-installer/4Eyes.spec 4Eyes.spec
+        run: cp 4Eyes.spec 4Eyes.spec
 
       - name: Build Mac app
         run: |
@@ -93,7 +93,7 @@ jobs:
         shell: cmd
 
       - name: Copy spec file
-        run: cp 4Eyes-installer/4Eyes.spec 4Eyes.spec
+        run: cp 4Eyes.spec 4Eyes.spec
 
       - name: Build Windows exe
         run: |
@@ -103,7 +103,7 @@ jobs:
         run: choco install nsis -y
 
       - name: Create Windows installer
-        run: makensis 4Eyes-installer/installer.nsi
+        run: makensis installer.nsi
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -140,7 +140,7 @@ jobs:
           cp vision-extension/icon128.png assets/icon.png
 
       - name: Copy spec file
-        run: cp 4Eyes-installer/4Eyes.spec 4Eyes.spec
+        run: cp 4Eyes.spec 4Eyes.spec
         
       - name: Build Linux binary
         run: |
