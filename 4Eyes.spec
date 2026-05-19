@@ -1,27 +1,25 @@
 # 4Eyes.spec
-# PyInstaller spec file for macOS, Windows, and Linux
-
 import sys
 import os
 
 block_cipher = None
+
+# Platform specific hidden imports
+if sys.platform == 'darwin':
+    platform_imports = ['rumps', 'pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw']
+elif sys.platform == 'win32':
+    platform_imports = ['pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw', 'screen_brightness_control']
+else:
+    platform_imports = ['pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw']
 
 a = Analysis(
     ['main.py'],
     pathex=['.'],
     binaries=[],
     datas=[
-        ('vision-extension', 'vision-extension'),  # Include Chrome extension
+        ('vision-extension', 'vision-extension'),
     ],
-    hiddenimports=[
-        'screeninfo',
-        'pystray',
-        'PIL',
-        'PIL.Image',
-        'PIL.ImageDraw',
-        'rumps',
-        'screen_brightness_control',
-    ],
+    hiddenimports=['screeninfo'] + platform_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -35,7 +33,7 @@ a = Analysis(
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 # -------------------------
-# macOS - creates a .app bundle
+# macOS
 # -------------------------
 if sys.platform == 'darwin':
     exe = EXE(
@@ -45,7 +43,6 @@ if sys.platform == 'darwin':
         exclude_binaries=True,
         name='4Eyes',
         debug=False,
-        bootloader_ignore_signals=False,
         strip=False,
         upx=True,
         console=False,
@@ -58,7 +55,6 @@ if sys.platform == 'darwin':
         a.datas,
         strip=False,
         upx=True,
-        upx_exclude=[],
         name='4Eyes',
     )
     app = BUNDLE(
@@ -72,12 +68,12 @@ if sys.platform == 'darwin':
             'CFBundleDisplayName': '4Eyes',
             'CFBundleShortVersionString': '1.0.0',
             'NSHighResolutionCapable': True,
-            'LSUIElement': True,  # Hides from dock, runs as menu bar app
+            'LSUIElement': True,
         },
     )
 
 # -------------------------
-# Windows - creates a .exe
+# Windows
 # -------------------------
 elif sys.platform == 'win32':
     exe = EXE(
@@ -89,24 +85,16 @@ elif sys.platform == 'win32':
         [],
         name='4Eyes',
         debug=False,
-        bootloader_ignore_signals=False,
         strip=False,
         upx=True,
-        upx_exclude=[],
-        runtime_tmpdir=None,
         console=False,
-        disable_windowed_traceback=False,
-        target_arch=None,
-        codesign_identity=None,
-        entitlements_file=None,
         icon='assets/icon.ico',
-        version='version_info.txt',
     )
 
 # -------------------------
-# Linux - creates a binary
+# Linux
 # -------------------------
-elif sys.platform.startswith('linux'):
+else:
     exe = EXE(
         pyz,
         a.scripts,
@@ -116,11 +104,8 @@ elif sys.platform.startswith('linux'):
         [],
         name='4Eyes',
         debug=False,
-        bootloader_ignore_signals=False,
         strip=False,
         upx=True,
-        upx_exclude=[],
-        runtime_tmpdir=None,
         console=False,
         icon='assets/icon.png',
     )
