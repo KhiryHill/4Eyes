@@ -25,7 +25,7 @@ RequestExecutionLevel admin
 
 Section "4Eyes" SecMain
   SetOutPath "$INSTDIR"
-  File /r "dist\4Eyes\*.*"
+  File "dist\4Eyes.exe"
 
   ; Create Start Menu shortcut
   CreateDirectory "$SMPROGRAMS\4Eyes"
