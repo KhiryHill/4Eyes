@@ -75,11 +75,14 @@ jobs:
       - name: Build Windows exe
         run: pyinstaller 4Eyes.spec --clean --noconfirm
 
-      - name: Install NSIS
+     - name: Install NSIS
         run: choco install nsis -y
 
       - name: Create Windows installer
-        run: makensis installer.nsi
+        run: |
+          $env:PATH += ";C:\Program Files (x86)\NSIS"
+          makensis installer.nsi
+        shell: powershell
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
