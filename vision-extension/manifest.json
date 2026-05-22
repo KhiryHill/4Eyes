@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "4Eyes",
   "version": "1.0",
-  "description": "Automatically adapts every website to your eye prescription for comfortable reading.",
+  "description": "Automatically adapts every website to your eye prescription for comfortable web browsing experience.",
   "permissions": [
     "activeTab",
     "scripting",
