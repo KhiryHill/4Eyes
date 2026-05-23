@@ -1,54 +1,86 @@
 // background.js
-// Polls the Vision Adaptive app every 2 seconds for updated settings
-// and broadcasts them to all open tabs
+// Connects to 4Eyes server instead of localhost
 
-const APP_URL = "http://localhost:5050/settings";
-let currentSettings = null;
+const API_URL = 'https://4eyes-production.up.railway.app';
 
 async function fetchSettings() {
   try {
-    const response = await fetch(APP_URL);
-    if (!response.ok) return;
-    const settings = await response.json();
-
-    // Only update if settings changed
-    if (JSON.stringify(settings) !== JSON.stringify(currentSettings)) {
-      currentSettings = settings;
-
-      // Save to storage
-      await chrome.storage.local.set({ visionSettings: settings });
-
-      // Broadcast to all tabs
-      const tabs = await chrome.tabs.query({});
-      for (const tab of tabs) {
-        try {
-          await chrome.tabs.sendMessage(tab.id, {
-            type: "VISION_SETTINGS_UPDATE",
-            settings
-          });
-        } catch (e) {
-          // Tab may not have content script, ignore
-        }
-      }
+    const token = await getToken();
+    if (!token) {
+      await chrome.storage.local.set({ visionConnected: false });
+      return;
     }
+
+    const response = await fetch(API_URL + '/extension/settings', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    if (!response.ok) {
+      await chrome.storage.local.set({ visionConnected: false });
+      return;
+    }
+
+    const data = await response.json();
+    const settings = data.settings;
+
+    await chrome.storage.local.set({
+      visionSettings: settings,
+      visionConnected: true
+    });
+
+    // Broadcast to all tabs
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      try {
+        await chrome.tabs.sendMessage(tab.id, {
+          type: 'VISION_SETTINGS_UPDATE',
+          settings
+        });
+      } catch (e) {}
+    }
+
   } catch (e) {
-    // App not running, store disconnected state
     await chrome.storage.local.set({ visionConnected: false });
   }
 }
 
-// Poll every 2 seconds
-setInterval(fetchSettings, 2000);
+async function getToken() {
+  return new Promise(resolve => {
+    chrome.storage.local.get('4eyes_token', result => {
+      console.log('Token found:', result['4eyes_token'] ? 'YES' : 'NO');
+      resolve(result['4eyes_token'] || null);
+    });
+  });
+}
+
+// Poll every 5 seconds
+setInterval(fetchSettings, 5000);
 fetchSettings();
 
-// Listen for popup requests
+// Listen for messages from popup
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.type === "GET_SETTINGS") {
-    sendResponse({ settings: currentSettings });
+  if (msg.type === 'GET_SETTINGS') {
+    chrome.storage.local.get(['visionSettings', 'visionConnected'], result => {
+      sendResponse(result);
+    });
+    return true;
   }
-  if (msg.type === "APPLY_NOW") {
+  if (msg.type === 'SET_TOKEN') {
+    chrome.storage.local.set({ '4eyes_token': msg.token }, () => {
+      fetchSettings();
+      sendResponse({ ok: true });
+    });
+    return true;
+  }
+  if (msg.type === 'LOGOUT') {
+    chrome.storage.local.remove(['4eyes_token', 'visionSettings', 'visionConnected'], () => {
+      sendResponse({ ok: true });
+    });
+    return true;
+  }
+  if (msg.type === 'APPLY_NOW') {
     fetchSettings();
     sendResponse({ ok: true });
+    return true;
   }
-  return true;
 });
