@@ -508,6 +508,7 @@
       user = data.user;
       localStorage.setItem('4eyes_token', token);
       localStorage.setItem('4eyes_user', JSON.stringify(user));
+      if (typeof chrome !== 'undefined' && chrome.runtime) { chrome.runtime.sendMessage({ type: 'SET_TOKEN', token: token }); }
       showDashboard();
       loadPrescription();
       loadSettings();
@@ -535,6 +536,7 @@
       user = data.user;
       localStorage.setItem('4eyes_token', token);
       localStorage.setItem('4eyes_user', JSON.stringify(user));
+      if (typeof chrome !== 'undefined' && chrome.runtime) { chrome.runtime.sendMessage({ type: 'SET_TOKEN', token: token }); }
       showDashboard();
     } catch (e) {
       showAlert('signup-alert', 'Connection error. Please try again.', 'error');
