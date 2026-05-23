@@ -616,7 +616,7 @@
         localStorage.setItem('4eyes_user', JSON.stringify(user));
         // After setting token and user in localStorage, also send to extension
         if (typeof chrome !== 'undefined' && chrome.runtime) {
-          chrome.runtime.sendMessage({ type: 'SET_TOKEN', token: token });
+          chrome.runtime.sendMessage('nilndbblpdlghhebbcboglkjpecklcpj', { type: 'SET_TOKEN', token: token });
         }
         showDashboard();
         loadPrescription();
@@ -646,7 +646,7 @@
         localStorage.setItem('4eyes_token', token);
         localStorage.setItem('4eyes_user', JSON.stringify(user));
         if (typeof chrome !== 'undefined' && chrome.runtime) {
-          chrome.runtime.sendMessage({ type: 'SET_TOKEN', token: token });
+          chrome.runtime.sendMessage('nilndbblpdlghhebbcboglkjpecklcpj', { type: 'SET_TOKEN', token: token });
         }
         showDashboard();
       } catch (e) {
@@ -654,18 +654,18 @@
       }
     }
 
-   function logout() {
-    localStorage.removeItem('4eyes_token');
-    localStorage.removeItem('4eyes_user');
-    token = null;
-    user = null;
-    document.getElementById('auth-section').style.display = 'block';
-    document.getElementById('dashboard-section').style.display = 'none';
-    showLogin();
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-      chrome.runtime.sendMessage({ type: 'LOGOUT' });
+    function logout() {
+      localStorage.removeItem('4eyes_token');
+      localStorage.removeItem('4eyes_user');
+      token = null;
+      user = null;
+      document.getElementById('auth-section').style.display = 'block';
+      document.getElementById('dashboard-section').style.display = 'none';
+      showLogin();
+      if (typeof chrome !== 'undefined' && chrome.runtime) {
+        chrome.runtime.sendMessage('nilndbblpdlghhebbcboglkjpecklcpj', { type: 'LOGOUT' });
+      }
     }
-  }
 
     // -------------------------
     // Prescription
