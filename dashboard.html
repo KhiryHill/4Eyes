@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4Eyes Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&family=Nunito:wght@400;500&family=Atkinson+Hyperlegible:wght@400;700&family=Source+Serif+4:wght@400;600&family=Lexend:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #0d0f14;
@@ -17,282 +17,77 @@
       --success: #34d399;
       --error: #f87171;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
       padding: 40px 20px;
-      background-image:
-        radial-gradient(ellipse at 20% 20%, rgba(91,141,238,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
+      background-image: radial-gradient(ellipse at 20% 20%, rgba(91,141,238,0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(167,139,250,0.06) 0%, transparent 60%);
     }
-
     h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 2rem;
+      font-family: 'DM Serif Display', serif; font-size: 2rem;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
       margin-bottom: 4px;
     }
-
     .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 32px; }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      width: 100%;
-      max-width: 480px;
-      margin-bottom: 16px;
-    }
-
-    .card-title {
-      font-size: 0.7rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--muted);
-      margin-bottom: 20px;
-    }
-
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 480px; margin-bottom: 16px; }
+    .card-title { font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 20px; }
     .form-group { margin-bottom: 14px; }
-
-    label {
-      display: block;
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-bottom: 6px;
-      font-weight: 500;
+    label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    input[type="email"], input[type="password"], input[type="text"], input[type="number"] {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 11px 14px; color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; outline: none; transition: border-color 0.2s;
     }
-
-    input[type="email"],
-    input[type="password"],
-    input[type="text"],
-    input[type="number"] {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 11px 14px;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
     input:focus { border-color: var(--accent); }
-    input.updated {
-      border-color: var(--success);
-      box-shadow: 0 0 0 3px rgba(52,211,153,0.1);
-    }
-
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 8px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: white;
-    }
+    input.updated { border-color: var(--success); box-shadow: 0 0 0 3px rgba(52,211,153,0.1); }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-bottom: 8px; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
     .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-
-    .btn-secondary {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
+    .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
     .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-
-    .toggle-link {
-      text-align: center;
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-top: 8px;
-    }
+    .toggle-link { text-align: center; font-size: 0.82rem; color: var(--muted); margin-top: 8px; }
     .toggle-link a { color: var(--accent); cursor: pointer; text-decoration: none; }
-
-    .alert {
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      margin-bottom: 14px;
-      display: none;
-    }
-    .alert.error {
-      background: rgba(248,113,113,0.1);
-      border: 1px solid rgba(248,113,113,0.2);
-      color: var(--error);
-      display: block;
-    }
-    .alert.success {
-      background: rgba(52,211,153,0.1);
-      border: 1px solid rgba(52,211,153,0.2);
-      color: var(--success);
-      display: block;
-    }
-
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 14px; display: none; }
+    .alert.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.2); color: var(--error); display: block; }
+    .alert.success { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); color: var(--success); display: block; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-
-    .eye-section {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-
-    .eye-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--accent);
-      margin-bottom: 10px;
-    }
-
+    .eye-section { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+    .eye-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 10px; }
     .slider-row { margin-bottom: 16px; }
-
-    .slider-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
-
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
     .slider-value { font-size: 0.82rem; color: var(--accent); font-weight: 500; }
-
-    input[type="range"] {
-      width: 100%;
-      -webkit-appearance: none;
-      height: 4px;
-      border-radius: 2px;
-      background: var(--border);
-      outline: none;
-    }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      cursor: pointer;
-    }
-
-    .user-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-      width: 100%;
-      max-width: 480px;
-    }
-
+    input[type="range"] { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--border); outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); cursor: pointer; }
+    .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; width: 100%; max-width: 480px; }
     .user-name { font-size: 0.88rem; color: var(--muted); }
     .user-name strong { color: var(--text); }
-
-    .logout-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      transition: all 0.2s;
-    }
+    .logout-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
     .logout-btn:hover { border-color: var(--error); color: var(--error); }
-
-    .axis-indicator {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 0.8rem;
-      color: var(--muted);
-      display: none;
-    }
+    .axis-indicator { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 0.8rem; color: var(--muted); display: none; }
     .axis-indicator.visible { display: block; }
     .axis-indicator strong { color: var(--accent2); }
-
-    .settings-summary {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .chip {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      text-align: center;
-    }
+    .settings-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+    .chip { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
     .chip-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
     .chip-value { font-size: 0.9rem; color: var(--accent); font-weight: 600; margin-top: 2px; }
-
-    .live-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(52,211,153,0.1);
-      border: 1px solid rgba(52,211,153,0.3);
-      color: #34d399;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
-
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      background: #34d399;
-      border-radius: 50%;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    .preview-box {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      transition: all 0.4s;
-    }
-
-    .preview-text {
-      font-size: 15px;
-      line-height: 1.6;
-      transition: all 0.4s;
-    }
-
+    .live-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: #34d399; font-size: 0.72rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-bottom: 20px; }
+    .live-dot { width: 6px; height: 6px; background: #34d399; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .preview-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; transition: all 0.4s; }
+    .preview-text { font-size: 15px; line-height: 1.6; transition: all 0.4s; }
+    .font-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .font-card:hover { border-color: var(--accent); background: rgba(91,141,238,0.05); }
+    .font-card.active { border-color: var(--accent); background: rgba(91,141,238,0.1); }
+    .font-card-left { flex: 1; }
+    .font-name { font-size: 0.88rem; color: var(--text); font-weight: 500; margin-bottom: 3px; }
+    .font-reason { font-size: 0.75rem; color: var(--muted); }
+    .font-preview-text { font-size: 1rem; color: var(--accent2); margin-left: 12px; white-space: nowrap; }
+    .font-rank { display: inline-block; background: rgba(91,141,238,0.15); color: var(--accent); font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+    .no-font-btn { background: none; border: 1px dashed var(--border); border-radius: 10px; padding: 10px; color: var(--muted); font-size: 0.78rem; cursor: pointer; font-family: 'DM Sans', sans-serif; width: 100%; transition: all 0.2s; margin-top: 4px; }
+    .no-font-btn:hover { border-color: var(--muted); color: var(--text); }
     #auth-section { width: 100%; max-width: 480px; }
     #dashboard-section { width: 100%; display: none; flex-direction: column; align-items: center; }
   </style>
@@ -302,20 +97,12 @@
 <h1>4Eyes</h1>
 <p class="subtitle">Vision Adaptive Display Pro</p>
 
-<!-- AUTH SECTION -->
 <div id="auth-section">
-
   <div class="card" id="login-card">
     <div class="card-title">Sign in to your account</div>
     <div class="alert" id="login-alert"></div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="login-email" placeholder="you@email.com" />
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="login-password" placeholder="••••••••" />
-    </div>
+    <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@email.com" /></div>
+    <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" /></div>
     <button class="btn btn-primary" onclick="login()">Sign In</button>
     <div class="toggle-link">Don't have an account? <a onclick="showSignup()">Sign up</a></div>
   </div>
@@ -323,27 +110,15 @@
   <div class="card" id="signup-card" style="display:none">
     <div class="card-title">Create your account</div>
     <div class="alert" id="signup-alert"></div>
-    <div class="form-group">
-      <label>Name</label>
-      <input type="text" id="signup-name" placeholder="Your name" />
-    </div>
-    <div class="form-group">
-      <label>Email</label>
-      <input type="email" id="signup-email" placeholder="you@email.com" />
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="signup-password" placeholder="••••••••" />
-    </div>
+    <div class="form-group"><label>Name</label><input type="text" id="signup-name" placeholder="Your name" /></div>
+    <div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="you@email.com" /></div>
+    <div class="form-group"><label>Password</label><input type="password" id="signup-password" placeholder="••••••••" /></div>
     <button class="btn btn-primary" onclick="signup()">Create Account</button>
     <div class="toggle-link">Already have an account? <a onclick="showLogin()">Sign in</a></div>
   </div>
-
 </div>
 
-<!-- DASHBOARD SECTION -->
 <div id="dashboard-section">
-
   <div class="user-header">
     <div class="user-name">Welcome back, <strong id="user-name-display">User</strong></div>
     <button class="logout-btn" onclick="logout()">Sign out</button>
@@ -351,10 +126,8 @@
 
   <div class="live-badge"><div class="live-dot"></div>Live Adjustment</div>
 
-  <!-- Prescription -->
   <div class="card">
     <div class="card-title">Prescription — adjusts as you type</div>
-
     <div class="eye-section">
       <div class="eye-label">Right Eye (OD)</div>
       <div class="grid-3">
@@ -363,7 +136,6 @@
         <div><label>Axis</label><input type="number" id="right_axis" min="1" max="180" placeholder="90" oninput="onPrescriptionChange(this)" /></div>
       </div>
     </div>
-
     <div class="eye-section">
       <div class="eye-label">Left Eye (OS)</div>
       <div class="grid-3">
@@ -372,16 +144,11 @@
         <div><label>Axis</label><input type="number" id="left_axis" min="1" max="180" placeholder="85" oninput="onPrescriptionChange(this)" /></div>
       </div>
     </div>
-
     <div style="margin-bottom:14px">
       <label>ADD (Reading)</label>
       <input type="number" id="add_val" step="0.25" placeholder="1.00" oninput="onPrescriptionChange(this)" />
     </div>
-
-    <div class="axis-indicator" id="axis-indicator">
-      <strong>Axis Insight:</strong> <span id="axis-insight-text"></span>
-    </div>
-
+    <div class="axis-indicator" id="axis-indicator"><strong>Axis Insight:</strong> <span id="axis-insight-text"></span></div>
     <div class="settings-summary" id="settings-summary" style="display:none">
       <div class="chip"><div class="chip-label">Brightness</div><div class="chip-value" id="chip-brightness">--</div></div>
       <div class="chip"><div class="chip-label">Contrast</div><div class="chip-value" id="chip-contrast">--</div></div>
@@ -390,39 +157,39 @@
     </div>
   </div>
 
-  <!-- Manual Overrides -->
+  <!-- Font Recommendations -->
+  <div class="card" id="font-card" style="display:none">
+    <div class="card-title">Recommended Fonts for Your Prescription</div>
+    <div id="font-recommendations"></div>
+    <button class="no-font-btn" onclick="clearFont()">Use website's default font</button>
+  </div>
+
   <div class="card">
     <div class="card-title">Manual Overrides</div>
-
     <div class="slider-row">
       <div class="slider-header"><label style="margin:0">Brightness</label><span class="slider-value" id="brightness-val">100%</span></div>
       <input type="range" id="brightness" min="20" max="100" value="100" oninput="updateSlider('brightness', this.value, '%'); saveSettings()" />
     </div>
-
     <div class="slider-row">
       <div class="slider-header"><label style="margin:0">Contrast</label><span class="slider-value" id="contrast-val">1.0x</span></div>
       <input type="range" id="contrast" min="10" max="20" value="10" oninput="updateSlider('contrast', (this.value/10).toFixed(1), 'x'); updatePreview(); saveSettings()" />
     </div>
-
     <div class="slider-row">
       <div class="slider-header"><label style="margin:0">Letter Spacing</label><span class="slider-value" id="spacing-val">0px</span></div>
       <input type="range" id="spacing" min="0" max="10" value="0" oninput="updateSlider('spacing', this.value, 'px'); updatePreview(); saveSettings()" />
     </div>
-
     <div class="slider-row">
       <div class="slider-header"><label style="margin:0">Line Height</label><span class="slider-value" id="lineheight-val">1.6</span></div>
       <input type="range" id="lineheight" min="10" max="30" value="16" oninput="updateSlider('lineheight', (this.value/10).toFixed(1), ''); updatePreview(); saveSettings()" />
     </div>
   </div>
 
-  <!-- Preview -->
   <div class="card">
     <div class="card-title">Readability Preview</div>
     <div class="preview-box" id="preview-box">
       <p class="preview-text" id="preview-text">This is a readability preview.<br/>Adjusting for your vision needs.<br/>The quick brown fox jumps over the lazy dog.</p>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -431,44 +198,52 @@
   let token = localStorage.getItem('4eyes_token');
   let user = JSON.parse(localStorage.getItem('4eyes_user') || 'null');
   let debounceTimer = null;
+  let activeFont = localStorage.getItem('4eyes_font') || '';
 
-  // -------------------------
-  // Init
-  // -------------------------
-  window.onload = () => {
-    if (token && user) {
-      showDashboard();
-      loadPrescription();
-      loadSettings();
+  const FONTS = {
+    atkinson: {
+      name: 'Atkinson Hyperlegible',
+      family: "'Atkinson Hyperlegible', sans-serif",
+      reason: 'Designed for low vision — unique letterforms reduce misreading similar characters (b/d, p/q)',
+      bestFor: 'myopia',
+      preview: 'Aa Bb Cc 123'
+    },
+    lexend: {
+      name: 'Lexend',
+      family: "'Lexend', sans-serif",
+      reason: 'Wide letter spacing and generous counters reduce visual crowding from astigmatism blur',
+      bestFor: 'astigmatism',
+      preview: 'Aa Bb Cc 123'
+    },
+    nunito: {
+      name: 'Nunito',
+      family: "'Nunito', sans-serif",
+      reason: 'Rounded open letterforms ease focusing strain for farsighted readers',
+      bestFor: 'hyperopia',
+      preview: 'Aa Bb Cc 123'
+    },
+    sourceSerif: {
+      name: 'Source Serif 4',
+      family: "'Source Serif 4', serif",
+      reason: 'Strong serif contrast helps aging eyes distinguish characters more easily',
+      bestFor: 'presbyopia',
+      preview: 'Aa Bb Cc 123'
     }
+  };
+
+  window.onload = () => {
+    if (token && user) { showDashboard(); loadPrescription(); loadSettings(); }
     updatePreview();
   };
 
-  // -------------------------
-  // Auth
-  // -------------------------
-  function showSignup() {
-    document.getElementById('login-card').style.display = 'none';
-    document.getElementById('signup-card').style.display = 'block';
-  }
-
-  function showLogin() {
-    document.getElementById('signup-card').style.display = 'none';
-    document.getElementById('login-card').style.display = 'block';
-  }
-
+  function showSignup() { document.getElementById('login-card').style.display='none'; document.getElementById('signup-card').style.display='block'; }
+  function showLogin() { document.getElementById('signup-card').style.display='none'; document.getElementById('login-card').style.display='block'; }
   function showDashboard() {
-    document.getElementById('auth-section').style.display = 'none';
-    document.getElementById('dashboard-section').style.display = 'flex';
+    document.getElementById('auth-section').style.display='none';
+    document.getElementById('dashboard-section').style.display='flex';
     document.getElementById('user-name-display').textContent = user?.name || user?.email || 'User';
   }
-
-  function showAlert(id, message, type) {
-    const el = document.getElementById(id);
-    el.textContent = message;
-    el.className = 'alert ' + type;
-  }
-
+  function showAlert(id, message, type) { const el = document.getElementById(id); el.textContent = message; el.className = 'alert ' + type; }
   function sendToExtension(type, data = {}) {
     if (typeof chrome !== 'undefined' && chrome.runtime) {
       try { chrome.runtime.sendMessage(EXT_ID, { type, ...data }); } catch(e) {}
@@ -480,24 +255,14 @@
     const password = document.getElementById('login-password').value;
     if (!email || !password) return showAlert('login-alert', 'Please fill in all fields', 'error');
     try {
-      const res = await fetch(API + '/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const res = await fetch(API + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
       const data = await res.json();
       if (!res.ok) return showAlert('login-alert', data.detail || 'Login failed', 'error');
-      token = data.token;
-      user = data.user;
-      localStorage.setItem('4eyes_token', token);
-      localStorage.setItem('4eyes_user', JSON.stringify(user));
+      token = data.token; user = data.user;
+      localStorage.setItem('4eyes_token', token); localStorage.setItem('4eyes_user', JSON.stringify(user));
       sendToExtension('SET_TOKEN', { token });
-      showDashboard();
-      loadPrescription();
-      loadSettings();
-    } catch (e) {
-      showAlert('login-alert', 'Connection error. Please try again.', 'error');
-    }
+      showDashboard(); loadPrescription(); loadSettings();
+    } catch (e) { showAlert('login-alert', 'Connection error. Please try again.', 'error'); }
   }
 
   async function signup() {
@@ -506,38 +271,25 @@
     const password = document.getElementById('signup-password').value;
     if (!email || !password) return showAlert('signup-alert', 'Please fill in all fields', 'error');
     try {
-      const res = await fetch(API + '/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
+      const res = await fetch(API + '/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }) });
       const data = await res.json();
       if (!res.ok) return showAlert('signup-alert', data.detail || 'Signup failed', 'error');
-      token = data.token;
-      user = data.user;
-      localStorage.setItem('4eyes_token', token);
-      localStorage.setItem('4eyes_user', JSON.stringify(user));
+      token = data.token; user = data.user;
+      localStorage.setItem('4eyes_token', token); localStorage.setItem('4eyes_user', JSON.stringify(user));
       sendToExtension('SET_TOKEN', { token });
       showDashboard();
-    } catch (e) {
-      showAlert('signup-alert', 'Connection error. Please try again.', 'error');
-    }
+    } catch (e) { showAlert('signup-alert', 'Connection error. Please try again.', 'error'); }
   }
 
   function logout() {
-    localStorage.removeItem('4eyes_token');
-    localStorage.removeItem('4eyes_user');
-    token = null;
-    user = null;
+    localStorage.removeItem('4eyes_token'); localStorage.removeItem('4eyes_user'); localStorage.removeItem('4eyes_font');
+    token = null; user = null; activeFont = '';
     sendToExtension('LOGOUT');
-    document.getElementById('auth-section').style.display = 'block';
-    document.getElementById('dashboard-section').style.display = 'none';
+    document.getElementById('auth-section').style.display='block';
+    document.getElementById('dashboard-section').style.display='none';
     showLogin();
   }
 
-  // -------------------------
-  // Prescription
-  // -------------------------
   async function loadPrescription() {
     try {
       const res = await fetch(API + '/prescription', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -559,8 +311,7 @@
     if (!token) return;
     try {
       await fetch(API + '/prescription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({
           right_sph: parseFloat(document.getElementById('right_sph').value) || 0,
           right_cyl: parseFloat(document.getElementById('right_cyl').value) || 0,
@@ -574,9 +325,6 @@
     } catch (e) { console.log('Could not save prescription', e); }
   }
 
-  // -------------------------
-  // Settings
-  // -------------------------
   async function loadSettings() {
     try {
       const res = await fetch(API + '/settings', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -599,8 +347,7 @@
     if (!token) return;
     try {
       await fetch(API + '/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({
           brightness: parseInt(document.getElementById('brightness').value),
           scale: 1.0,
@@ -613,9 +360,56 @@
     updatePreview();
   }
 
-  // -------------------------
-  // Prescription Logic
-  // -------------------------
+  function recommendFonts(avgSph, avgCyl, addVal) {
+    const scored = Object.entries(FONTS).map(([key, font]) => {
+      let score = 0.5;
+      if (font.bestFor === 'myopia' && avgSph < -1) score += 3 + Math.abs(avgSph) * 0.5;
+      if (font.bestFor === 'hyperopia' && avgSph > 1) score += 3 + avgSph * 0.5;
+      if (font.bestFor === 'astigmatism' && avgCyl > 0.5) score += 3 + avgCyl * 0.8;
+      if (font.bestFor === 'presbyopia' && addVal > 0.5) score += 3 + addVal * 0.5;
+      return { key, font, score };
+    });
+    return scored.sort((a, b) => b.score - a.score).slice(0, 3);
+  }
+
+  function renderFontRecommendations(recommendations) {
+    const container = document.getElementById('font-recommendations');
+    document.getElementById('font-card').style.display = 'block';
+    container.innerHTML = '';
+    const ranks = ['Best Match', '2nd', '3rd'];
+    recommendations.forEach(({ key, font }, i) => {
+      const div = document.createElement('div');
+      div.className = 'font-card' + (activeFont === font.family ? ' active' : '');
+      div.innerHTML = `
+        <div class="font-card-left">
+          <div class="font-rank">${ranks[i]}</div>
+          <div class="font-name" style="font-family:${font.family}">${font.name}</div>
+          <div class="font-reason">${font.reason}</div>
+        </div>
+        <div class="font-preview-text" style="font-family:${font.family}">${font.preview}</div>
+      `;
+      div.addEventListener('click', () => applyFont(font, div));
+      container.appendChild(div);
+    });
+  }
+
+  function applyFont(font, el) {
+    activeFont = font.family;
+    localStorage.setItem('4eyes_font', activeFont);
+    document.querySelectorAll('.font-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('preview-text').style.fontFamily = font.family;
+    sendToExtension('VISION_FONT_UPDATE', { fontFamily: font.family });
+  }
+
+  function clearFont() {
+    activeFont = '';
+    localStorage.removeItem('4eyes_font');
+    document.querySelectorAll('.font-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('preview-text').style.fontFamily = '';
+    sendToExtension('VISION_FONT_UPDATE', { fontFamily: '' });
+  }
+
   function onPrescriptionChange(el) {
     el.classList.add('updated');
     setTimeout(() => el.classList.remove('updated'), 800);
@@ -638,43 +432,34 @@
     const avgCyl = (Math.abs(rCyl) + Math.abs(lCyl)) / 2;
     const avgAxis = (rAxis + lAxis) / 2;
 
-    // Brightness — reduce for myopia (glare reduction), normal for hyperopia
     let brightness = 100;
     if (avgSph < 0) brightness = Math.max(70, Math.round(100 + avgSph * 3));
 
-    // Contrast — higher astigmatism = sharper edges needed
     let contrast = Math.min(1.5, 1.0 + avgCyl * 0.15);
 
-    // Letter Spacing & Line Height based on axis direction
     let spacing = 0;
     let lineHeight = 1.6;
 
     if (avgCyl > 0.5) {
       if (avgAxis >= 160 || avgAxis <= 20) {
-        // Horizontal astigmatism — separate lines more
         lineHeight = Math.min(2.2, 1.6 + avgCyl * 0.15);
         spacing = Math.min(2, avgCyl * 0.5);
       } else if (avgAxis >= 70 && avgAxis <= 110) {
-        // Vertical astigmatism — separate characters more
         spacing = Math.min(3, avgCyl * 0.8);
         lineHeight = Math.min(2.0, 1.6 + avgCyl * 0.1);
       } else {
-        // Oblique — both
         spacing = Math.min(2, avgCyl * 0.5);
         lineHeight = Math.min(2.0, 1.6 + avgCyl * 0.1);
       }
     }
 
-    // ADD (presbyopia) — more line height
     if (addVal > 0) lineHeight = Math.min(2.4, lineHeight + addVal * 0.1);
 
-    // Round
     brightness = Math.round(brightness);
     contrast = Math.round(contrast * 100) / 100;
     spacing = Math.round(spacing * 10) / 10;
     lineHeight = Math.round(lineHeight * 100) / 100;
 
-    // Update sliders
     document.getElementById('brightness').value = brightness;
     document.getElementById('contrast').value = Math.round(contrast * 10);
     document.getElementById('spacing').value = Math.round(spacing);
@@ -685,22 +470,18 @@
     updateSlider('spacing', Math.round(spacing), 'px');
     updateSlider('lineheight', lineHeight.toFixed(2), '');
 
-    // Update chips
     document.getElementById('settings-summary').style.display = 'grid';
     document.getElementById('chip-brightness').textContent = brightness + '%';
     document.getElementById('chip-contrast').textContent = contrast.toFixed(2) + 'x';
     document.getElementById('chip-spacing').textContent = Math.round(spacing) + 'px';
     document.getElementById('chip-lineheight').textContent = lineHeight.toFixed(2);
 
-    // Axis insight
     const insight = getAxisInsight(rAxis, lAxis, rCyl, lCyl);
     const indicator = document.getElementById('axis-indicator');
-    if (insight) {
-      document.getElementById('axis-insight-text').textContent = insight;
-      indicator.classList.add('visible');
-    } else {
-      indicator.classList.remove('visible');
-    }
+    if (insight) { document.getElementById('axis-insight-text').textContent = insight; indicator.classList.add('visible'); }
+    else { indicator.classList.remove('visible'); }
+
+    renderFontRecommendations(recommendFonts(avgSph, avgCyl, addVal));
 
     updatePreview();
     saveSettings();
@@ -714,9 +495,7 @@
     return 'Oblique astigmatism detected. Both spacing and line height adjusted for comfort.';
   }
 
-  function updateSlider(id, value, unit) {
-    document.getElementById(id + '-val').textContent = value + unit;
-  }
+  function updateSlider(id, value, unit) { document.getElementById(id + '-val').textContent = value + unit; }
 
   function updatePreview() {
     const contrast = parseFloat(document.getElementById('contrast').value) / 10;
@@ -727,6 +506,7 @@
     const box = document.getElementById('preview-box');
     preview.style.letterSpacing = spacing + 'px';
     preview.style.lineHeight = lineHeight;
+    if (activeFont) preview.style.fontFamily = activeFont;
     box.style.filter = `contrast(${contrast}) brightness(${brightness / 100})`;
   }
 

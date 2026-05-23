@@ -1,6 +1,4 @@
 // background.js
-// Connects to 4Eyes server instead of localhost
-
 const API_URL = 'https://4eyes-production.up.railway.app';
 
 async function fetchSettings() {
@@ -23,24 +21,19 @@ async function fetchSettings() {
     const data = await response.json();
     const settings = data.settings;
 
-    await chrome.storage.local.set({
-      visionSettings: settings,
-      visionConnected: true
-    });
+    await chrome.storage.local.set({ visionSettings: settings, visionConnected: true });
 
-    // Broadcast to all tabs
-    const tabs = await chrome.tabs.query({});
-    for (const tab of tabs) {
-      try {
-        await chrome.tabs.sendMessage(tab.id, {
-          type: 'VISION_SETTINGS_UPDATE',
-          settings
-        });
-      } catch (e) {}
-    }
+    broadcastToTabs({ type: 'VISION_SETTINGS_UPDATE', settings });
 
   } catch (e) {
     await chrome.storage.local.set({ visionConnected: false });
+  }
+}
+
+async function broadcastToTabs(message) {
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    try { await chrome.tabs.sendMessage(tab.id, message); } catch (e) {}
   }
 }
 
@@ -57,7 +50,6 @@ async function getToken() {
 setInterval(fetchSettings, 5000);
 fetchSettings();
 
-// Listen for messages from popup
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'GET_SETTINGS') {
     chrome.storage.local.get(['visionSettings', 'visionConnected'], result => {
@@ -73,13 +65,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === 'LOGOUT') {
-    chrome.storage.local.remove(['4eyes_token', 'visionSettings', 'visionConnected'], () => {
+    chrome.storage.local.remove(['4eyes_token', 'visionSettings', 'visionConnected', 'visionFont'], () => {
       sendResponse({ ok: true });
     });
     return true;
   }
   if (msg.type === 'APPLY_NOW') {
     fetchSettings();
+    sendResponse({ ok: true });
+    return true;
+  }
+  if (msg.type === 'VISION_FONT_UPDATE') {
+    chrome.storage.local.set({ visionFont: msg.fontFamily });
+    broadcastToTabs({ type: 'VISION_FONT_UPDATE', fontFamily: msg.fontFamily });
     sendResponse({ ok: true });
     return true;
   }
