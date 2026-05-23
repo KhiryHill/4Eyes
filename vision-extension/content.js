@@ -1,5 +1,5 @@
 // content.js
-// Runs on every webpage and applies vision prescription settings
+// Applies vision comfort settings — reduces eye strain, does not correct vision
 
 const STYLE_ID = "vision-adaptive-styles";
 
@@ -7,29 +7,30 @@ function applySettings(settings) {
   if (!settings) return;
 
   const {
-    scale = 1.0,
     contrast = 1.0,
     spacing = 0,
-    lineHeight = 1.6
+    line_height = 1.6,
+    font_weight = 400,
+    brightness = 100
   } = settings;
 
-  // Remove existing style if present
   const existing = document.getElementById(STYLE_ID);
   if (existing) existing.remove();
 
-  // Create new style block
   const style = document.createElement("style");
   style.id = STYLE_ID;
   style.textContent = `
-    body, p, span, div, li, td, th, h1, h2, h3, h4, h5, h6,
-    a, label, input, textarea, button, select {
-      font-size: ${scale > 1 ? scale + "em" : ""} !important;
-      letter-spacing: ${spacing}px !important;
-      line-height: ${lineHeight} !important;
+    html {
+      filter: contrast(${contrast}) brightness(${brightness / 100}) !important;
     }
 
-    html {
-      filter: contrast(${contrast}) !important;
+    body, p, span, div, li, td, th,
+    h1, h2, h3, h4, h5, h6,
+    a, label, input, textarea, button, select {
+      letter-spacing: ${spacing}px !important;
+      line-height: ${line_height} !important;
+      font-weight: ${font_weight} !important;
+      word-spacing: ${spacing > 0 ? spacing * 2 : 0}px !important;
     }
   `;
 
