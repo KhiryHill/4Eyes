@@ -48,7 +48,7 @@ enableToggle.addEventListener("change", () => {
 
 // Open dashboard
 document.getElementById("open-app").addEventListener("click", () => {
-  chrome.tabs.create({ url: "http://localhost:5050" });
+  chrome.tabs.create({ url: "https://khiryhill.github.io/4Eyes/dashboard.html" });
 });
 
 // Refresh settings
