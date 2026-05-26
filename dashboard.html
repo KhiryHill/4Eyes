@@ -41,7 +41,12 @@
       padding: 11px 14px; color: var(--text); font-family: 'DM Sans', sans-serif;
       font-size: 0.9rem; outline: none; transition: border-color 0.2s;
     }
-    input:focus { border-color: var(--accent); }
+    select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 11px 14px; color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; outline: none; transition: border-color 0.2s; cursor: pointer;
+    }
+    select:focus, input:focus { border-color: var(--accent); }
     input.updated { border-color: var(--success); box-shadow: 0 0 0 3px rgba(52,211,153,0.1); }
     .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-bottom: 8px; }
     .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
@@ -88,6 +93,7 @@
     .font-rank { display: inline-block; background: rgba(91,141,238,0.15); color: var(--accent); font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
     .no-font-btn { background: none; border: 1px dashed var(--border); border-radius: 10px; padding: 10px; color: var(--muted); font-size: 0.78rem; cursor: pointer; font-family: 'DM Sans', sans-serif; width: 100%; transition: all 0.2s; margin-top: 4px; }
     .no-font-btn:hover { border-color: var(--muted); color: var(--text); }
+    .password-hint { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
     #auth-section { width: 100%; max-width: 480px; }
     #dashboard-section { width: 100%; display: none; flex-direction: column; align-items: center; }
   </style>
@@ -98,26 +104,88 @@
 <p class="subtitle">Vision Adaptive Display Pro</p>
 
 <div id="auth-section">
+
+  <!-- Login -->
   <div class="card" id="login-card">
     <div class="card-title">Sign in to your account</div>
     <div class="alert" id="login-alert"></div>
     <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="you@email.com" /></div>
     <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" /></div>
     <button class="btn btn-primary" onclick="login()">Sign In</button>
+    <div class="toggle-link" style="margin-top:4px"><a onclick="showForgotPassword()">Forgot password?</a></div>
     <div class="toggle-link">Don't have an account? <a onclick="showSignup()">Sign up</a></div>
   </div>
 
+  <!-- Signup -->
   <div class="card" id="signup-card" style="display:none">
     <div class="card-title">Create your account</div>
     <div class="alert" id="signup-alert"></div>
     <div class="form-group"><label>Name</label><input type="text" id="signup-name" placeholder="Your name" /></div>
     <div class="form-group"><label>Email</label><input type="email" id="signup-email" placeholder="you@email.com" /></div>
-    <div class="form-group"><label>Password</label><input type="password" id="signup-password" placeholder="••••••••" /></div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="signup-password" placeholder="••••••••" />
+      <div class="password-hint">At least 5 characters. Cannot be a single repeating character.</div>
+    </div>
+    <div class="form-group"><label>Confirm Password</label><input type="password" id="signup-confirm" placeholder="••••••••" /></div>
+    <div class="form-group">
+      <label>Security Question 1</label>
+      <select id="signup-q1">
+        <option value="">Select a question...</option>
+        <option>What was the name of your first pet?</option>
+        <option>What city were you born in?</option>
+        <option>What was your mother's maiden name?</option>
+        <option>What was the name of your elementary school?</option>
+        <option>What was your childhood nickname?</option>
+        <option>What is your oldest sibling's middle name?</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Answer 1</label><input type="text" id="signup-a1" placeholder="Your answer" /></div>
+    <div class="form-group">
+      <label>Security Question 2</label>
+      <select id="signup-q2">
+        <option value="">Select a question...</option>
+        <option>What was the name of your first pet?</option>
+        <option>What city were you born in?</option>
+        <option>What was your mother's maiden name?</option>
+        <option>What was the name of your elementary school?</option>
+        <option>What was your childhood nickname?</option>
+        <option>What is your oldest sibling's middle name?</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Answer 2</label><input type="text" id="signup-a2" placeholder="Your answer" /></div>
     <button class="btn btn-primary" onclick="signup()">Create Account</button>
     <div class="toggle-link">Already have an account? <a onclick="showLogin()">Sign in</a></div>
   </div>
+
+  <!-- Forgot Password Step 1: Email -->
+  <div class="card" id="forgot-card" style="display:none">
+    <div class="card-title">Reset your password</div>
+    <div class="alert" id="forgot-alert"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="forgot-email" placeholder="you@email.com" /></div>
+    <button class="btn btn-primary" onclick="lookupSecurityQuestions()">Continue</button>
+    <div class="toggle-link"><a onclick="showLogin()">Back to sign in</a></div>
+  </div>
+
+  <!-- Forgot Password Step 2: Security Questions + New Password -->
+  <div class="card" id="reset-card" style="display:none">
+    <div class="card-title">Answer your security questions</div>
+    <div class="alert" id="reset-alert"></div>
+    <div class="form-group"><label id="reset-q1-label">Question 1</label><input type="text" id="reset-a1" placeholder="Your answer" /></div>
+    <div class="form-group"><label id="reset-q2-label">Question 2</label><input type="text" id="reset-a2" placeholder="Your answer" /></div>
+    <div class="form-group">
+      <label>New Password</label>
+      <input type="password" id="reset-password" placeholder="••••••••" />
+      <div class="password-hint">At least 5 characters. Cannot be a single repeating character.</div>
+    </div>
+    <div class="form-group"><label>Confirm New Password</label><input type="password" id="reset-confirm" placeholder="••••••••" /></div>
+    <button class="btn btn-primary" onclick="resetPassword()">Reset Password</button>
+    <div class="toggle-link"><a onclick="showLogin()">Back to sign in</a></div>
+  </div>
+
 </div>
 
+<!-- DASHBOARD SECTION -->
 <div id="dashboard-section">
   <div class="user-header">
     <div class="user-name">Welcome back, <strong id="user-name-display">User</strong></div>
@@ -201,34 +269,10 @@
   let activeFont = localStorage.getItem('4eyes_font') || '';
 
   const FONTS = {
-    atkinson: {
-      name: 'Atkinson Hyperlegible',
-      family: "'Atkinson Hyperlegible', sans-serif",
-      reason: 'Designed for low vision — unique letterforms reduce misreading similar characters (b/d, p/q)',
-      bestFor: 'myopia',
-      preview: 'Aa Bb Cc 123'
-    },
-    lexend: {
-      name: 'Lexend',
-      family: "'Lexend', sans-serif",
-      reason: 'Wide letter spacing and generous counters reduce visual crowding from astigmatism blur',
-      bestFor: 'astigmatism',
-      preview: 'Aa Bb Cc 123'
-    },
-    nunito: {
-      name: 'Nunito',
-      family: "'Nunito', sans-serif",
-      reason: 'Rounded open letterforms ease focusing strain for farsighted readers',
-      bestFor: 'hyperopia',
-      preview: 'Aa Bb Cc 123'
-    },
-    sourceSerif: {
-      name: 'Source Serif 4',
-      family: "'Source Serif 4', serif",
-      reason: 'Strong serif contrast helps aging eyes distinguish characters more easily',
-      bestFor: 'presbyopia',
-      preview: 'Aa Bb Cc 123'
-    }
+    atkinson: { name: 'Atkinson Hyperlegible', family: "'Atkinson Hyperlegible', sans-serif", reason: 'Designed for low vision — unique letterforms reduce misreading similar characters (b/d, p/q)', bestFor: 'myopia', preview: 'Aa Bb Cc 123' },
+    lexend: { name: 'Lexend', family: "'Lexend', sans-serif", reason: 'Wide letter spacing and generous counters reduce visual crowding from astigmatism blur', bestFor: 'astigmatism', preview: 'Aa Bb Cc 123' },
+    nunito: { name: 'Nunito', family: "'Nunito', sans-serif", reason: 'Rounded open letterforms ease focusing strain for farsighted readers', bestFor: 'hyperopia', preview: 'Aa Bb Cc 123' },
+    sourceSerif: { name: 'Source Serif 4', family: "'Source Serif 4', serif", reason: 'Strong serif contrast helps aging eyes distinguish characters more easily', bestFor: 'presbyopia', preview: 'Aa Bb Cc 123' }
   };
 
   window.onload = () => {
@@ -236,20 +280,48 @@
     updatePreview();
   };
 
-  function showSignup() { document.getElementById('login-card').style.display='none'; document.getElementById('signup-card').style.display='block'; }
-  function showLogin() { document.getElementById('signup-card').style.display='none'; document.getElementById('login-card').style.display='block'; }
+  // -------------------------
+  // Auth Navigation
+  // -------------------------
+  function hideAllCards() {
+    ['login-card','signup-card','forgot-card','reset-card'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  }
+  function showLogin() { hideAllCards(); document.getElementById('login-card').style.display = 'block'; }
+  function showSignup() { hideAllCards(); document.getElementById('signup-card').style.display = 'block'; }
+  function showForgotPassword() { hideAllCards(); document.getElementById('forgot-card').style.display = 'block'; }
+
   function showDashboard() {
-    document.getElementById('auth-section').style.display='none';
-    document.getElementById('dashboard-section').style.display='flex';
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('dashboard-section').style.display = 'flex';
     document.getElementById('user-name-display').textContent = user?.name || user?.email || 'User';
   }
-  function showAlert(id, message, type) { const el = document.getElementById(id); el.textContent = message; el.className = 'alert ' + type; }
+
+  function showAlert(id, message, type) {
+    const el = document.getElementById(id);
+    el.textContent = message;
+    el.className = 'alert ' + type;
+  }
+
   function sendToExtension(type, data = {}) {
     if (typeof chrome !== 'undefined' && chrome.runtime) {
       try { chrome.runtime.sendMessage(EXT_ID, { type, ...data }); } catch(e) {}
     }
   }
 
+  // -------------------------
+  // Password Validation
+  // -------------------------
+  function validatePassword(password) {
+    if (password.length < 5) return 'Password must be at least 5 characters long';
+    if (/^(.)\1{4,}$/.test(password)) return 'Password cannot be a single repeating character';
+    return null;
+  }
+
+  // -------------------------
+  // Login
+  // -------------------------
   async function login() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
@@ -265,13 +337,33 @@
     } catch (e) { showAlert('login-alert', 'Connection error. Please try again.', 'error'); }
   }
 
+  // -------------------------
+  // Signup
+  // -------------------------
   async function signup() {
     const name = document.getElementById('signup-name').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const confirm = document.getElementById('signup-confirm').value;
+    const q1 = document.getElementById('signup-q1').value;
+    const a1 = document.getElementById('signup-a1').value.trim().toLowerCase();
+    const q2 = document.getElementById('signup-q2').value;
+    const a2 = document.getElementById('signup-a2').value.trim().toLowerCase();
+
     if (!email || !password) return showAlert('signup-alert', 'Please fill in all fields', 'error');
+
+    const pwError = validatePassword(password);
+    if (pwError) return showAlert('signup-alert', pwError, 'error');
+    if (password !== confirm) return showAlert('signup-alert', 'Passwords do not match', 'error');
+    if (!q1 || !a1) return showAlert('signup-alert', 'Please answer security question 1', 'error');
+    if (!q2 || !a2) return showAlert('signup-alert', 'Please answer security question 2', 'error');
+    if (q1 === q2) return showAlert('signup-alert', 'Please choose two different security questions', 'error');
+
     try {
-      const res = await fetch(API + '/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }) });
+      const res = await fetch(API + '/auth/signup', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, question_1: q1, answer_1: a1, question_2: q2, answer_2: a2 })
+      });
       const data = await res.json();
       if (!res.ok) return showAlert('signup-alert', data.detail || 'Signup failed', 'error');
       token = data.token; user = data.user;
@@ -281,15 +373,65 @@
     } catch (e) { showAlert('signup-alert', 'Connection error. Please try again.', 'error'); }
   }
 
+  // -------------------------
+  // Forgot Password
+  // -------------------------
+  async function lookupSecurityQuestions() {
+    const email = document.getElementById('forgot-email').value;
+    if (!email) return showAlert('forgot-alert', 'Please enter your email', 'error');
+    try {
+      const res = await fetch(API + '/auth/security-questions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) return showAlert('forgot-alert', data.detail || 'Email not found', 'error');
+      document.getElementById('reset-q1-label').textContent = data.question_1;
+      document.getElementById('reset-q2-label').textContent = data.question_2;
+      hideAllCards();
+      document.getElementById('reset-card').style.display = 'block';
+    } catch (e) { showAlert('forgot-alert', 'Connection error. Please try again.', 'error'); }
+  }
+
+  async function resetPassword() {
+    const email = document.getElementById('forgot-email').value;
+    const a1 = document.getElementById('reset-a1').value.trim().toLowerCase();
+    const a2 = document.getElementById('reset-a2').value.trim().toLowerCase();
+    const newPassword = document.getElementById('reset-password').value;
+    const confirm = document.getElementById('reset-confirm').value;
+
+    if (!a1 || !a2) return showAlert('reset-alert', 'Please answer both security questions', 'error');
+    const pwError = validatePassword(newPassword);
+    if (pwError) return showAlert('reset-alert', pwError, 'error');
+    if (newPassword !== confirm) return showAlert('reset-alert', 'Passwords do not match', 'error');
+
+    try {
+      const res = await fetch(API + '/auth/reset-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, answer_1: a1, answer_2: a2, new_password: newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) return showAlert('reset-alert', data.detail || 'Reset failed', 'error');
+      showAlert('reset-alert', 'Password reset successfully! Please sign in.', 'success');
+      setTimeout(() => showLogin(), 2000);
+    } catch (e) { showAlert('reset-alert', 'Connection error. Please try again.', 'error'); }
+  }
+
+  // -------------------------
+  // Logout
+  // -------------------------
   function logout() {
     localStorage.removeItem('4eyes_token'); localStorage.removeItem('4eyes_user'); localStorage.removeItem('4eyes_font');
     token = null; user = null; activeFont = '';
     sendToExtension('LOGOUT');
-    document.getElementById('auth-section').style.display='block';
-    document.getElementById('dashboard-section').style.display='none';
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('dashboard-section').style.display = 'none';
     showLogin();
   }
 
+  // -------------------------
+  // Prescription
+  // -------------------------
   async function loadPrescription() {
     try {
       const res = await fetch(API + '/prescription', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -325,6 +467,9 @@
     } catch (e) { console.log('Could not save prescription', e); }
   }
 
+  // -------------------------
+  // Settings
+  // -------------------------
   async function loadSettings() {
     try {
       const res = await fetch(API + '/settings', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -360,6 +505,9 @@
     updatePreview();
   }
 
+  // -------------------------
+  // Font Recommendations
+  // -------------------------
   function recommendFonts(avgSph, avgCyl, addVal) {
     const scored = Object.entries(FONTS).map(([key, font]) => {
       let score = 0.5;
@@ -410,6 +558,9 @@
     sendToExtension('VISION_FONT_UPDATE', { fontFamily: '' });
   }
 
+  // -------------------------
+  // Prescription Logic
+  // -------------------------
   function onPrescriptionChange(el) {
     el.classList.add('updated');
     setTimeout(() => el.classList.remove('updated'), 800);
@@ -436,7 +587,6 @@
     if (avgSph < 0) brightness = Math.max(70, Math.round(100 + avgSph * 3));
 
     let contrast = Math.min(1.5, 1.0 + avgCyl * 0.15);
-
     let spacing = 0;
     let lineHeight = 1.6;
 
@@ -482,7 +632,6 @@
     else { indicator.classList.remove('visible'); }
 
     renderFontRecommendations(recommendFonts(avgSph, avgCyl, addVal));
-
     updatePreview();
     saveSettings();
   }
