@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — 4Eyes</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0f14;
+      --surface: #161a23;
+      --border: #252a38;
+      --accent: #5b8dee;
+      --accent2: #a78bfa;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+      background-image: radial-gradient(ellipse at 20% 20%, rgba(91,141,238,0.08) 0%, transparent 60%);
+      line-height: 1.7;
+    }
+    .container { width: 100%; max-width: 680px; }
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 48px; }
+    h2 { font-size: 1rem; font-weight: 600; color: var(--accent2); margin: 32px 0 10px; text-transform: uppercase; letter-spacing: 1px; font-size: 0.78rem; }
+    p { color: var(--text); font-size: 0.92rem; margin-bottom: 12px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    ul li { font-size: 0.92rem; color: var(--text); margin-bottom: 6px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 16px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .back { display: inline-block; margin-bottom: 32px; font-size: 0.82rem; color: var(--muted); }
+    .back:hover { color: var(--accent); }
+    .updated { font-size: 0.78rem; color: var(--muted); margin-bottom: 32px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a class="back" href="/">← Back to 4Eyes</a>
+  <h1>4Eyes</h1>
+  <p class="subtitle">Privacy Policy</p>
+  <p class="updated">Last updated: May 28, 2026</p>
+
+  <div class="card">
+    <h2>Overview</h2>
+    <p>4Eyes ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your data when you use the 4Eyes Chrome extension and associated services.</p>
+
+    <h2>Information We Collect</h2>
+    <p>We collect only the information necessary to provide the 4Eyes service:</p>
+    <ul>
+      <li><strong>Account information</strong> — your name, email address, and a hashed (encrypted) password when you create an account</li>
+      <li><strong>Eye prescription data</strong> — SPH, CYL, Axis, and ADD values you enter into the dashboard</li>
+      <li><strong>Display settings</strong> — brightness, contrast, letter spacing, line height, and font preferences you configure</li>
+      <li><strong>Security questions</strong> — your selected security questions and hashed answers for account recovery</li>
+    </ul>
+
+    <h2>Information We Do Not Collect</h2>
+    <ul>
+      <li>We do not collect your browsing history</li>
+      <li>We do not track which websites you visit</li>
+      <li>We do not collect any personally identifiable information beyond what you provide during signup</li>
+      <li>We do not sell, rent, or share your data with third parties</li>
+      <li>We do not use your data for advertising purposes</li>
+    </ul>
+
+    <h2>How We Use Your Information</h2>
+    <ul>
+      <li>To authenticate your account and keep your session secure</li>
+      <li>To store and sync your prescription and display settings across devices</li>
+      <li>To apply vision adaptations to websites you visit via the Chrome extension</li>
+      <li>To allow you to recover your account via security questions</li>
+    </ul>
+
+    <h2>Data Storage</h2>
+    <p>Your account data is stored securely in a Supabase (PostgreSQL) database. Passwords and security question answers are stored as bcrypt hashes and cannot be retrieved in plain text by anyone, including us.</p>
+    <p>Your authentication token is stored locally in your browser's extension storage and is never shared with third parties.</p>
+
+    <h2>Local Data</h2>
+    <p>The 4Eyes Chrome extension stores the following data locally on your device using Chrome's built-in storage API:</p>
+    <ul>
+      <li>Your authentication token</li>
+      <li>Your current vision settings</li>
+      <li>Your selected font preference</li>
+      <li>Your extension enabled/disabled state</li>
+    </ul>
+    <p>This data remains on your device and is cleared when you sign out.</p>
+
+    <h2>Third-Party Services</h2>
+    <p>4Eyes uses the following third-party services to operate:</p>
+    <ul>
+      <li><strong>Supabase</strong> — secure database hosting for user accounts and settings</li>
+      <li><strong>Railway</strong> — API server hosting</li>
+      <li><strong>Google Fonts</strong> — loading recommended fonts in the dashboard and on webpages</li>
+    </ul>
+    <p>These services have their own privacy policies and data handling practices.</p>
+
+    <h2>Data Retention</h2>
+    <p>Your data is retained for as long as your account is active. You may request deletion of your account and all associated data by contacting us at the email below.</p>
+
+    <h2>Children's Privacy</h2>
+    <p>4Eyes is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify users of significant changes by updating the "Last updated" date at the top of this page.</p>
+
+    <h2>Contact Us</h2>
+    <p>If you have any questions about this Privacy Policy or your data, please contact us at:</p>
+    <p><a href="mailto:privacy@4eyeslux.io">privacy@4eyeslux.io</a></p>
+  </div>
+</div>
+</body>
+</html>
