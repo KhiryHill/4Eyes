@@ -1,12 +1,14 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 import os
 import re
 import jwt
 import bcrypt
+import secrets
+import httpx
 from datetime import datetime, timedelta
 from supabase import create_client, Client
 
@@ -29,6 +31,8 @@ app.add_middleware(
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 JWT_SECRET = os.environ.get("JWT_SECRET", "4eyes-secret-key-change-in-production")
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")  # <-- ADD YOUR RESEND API KEY TO RAILWAY AS RESEND_API_KEY
+APP_URL = os.environ.get("APP_URL", "https://4eyeslux.io")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 security = HTTPBearer()
@@ -108,6 +112,36 @@ def validate_password(password: str) -> Optional[str]:
     return None
 
 # -------------------------
+# Email Helper
+# -------------------------
+async def send_verification_email(email: str, name: str, token: str):
+    verify_url = f"{APP_URL}/dashboard.html?verify={token}"
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "from": "4Eyes <noreply@4eyeslux.io>",
+                "to": [email],
+                "subject": "Verify your 4Eyes account",
+                "html": f"""
+                <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px; background: #0d0f14; color: #e8eaf0; border-radius: 16px;">
+                    <h1 style="font-size: 1.8rem; background: linear-gradient(135deg, #5b8dee, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">4Eyes</h1>
+                    <p style="color: #6b7280; margin-bottom: 24px;">Vision Adaptive Display Pro</p>
+                    <p>Hi {name or 'there'},</p>
+                    <p style="margin: 16px 0;">Thanks for signing up! Click the button below to verify your email address and activate your account.</p>
+                    <a href="{verify_url}" style="display: inline-block; background: linear-gradient(135deg, #5b8dee, #a78bfa); color: white; padding: 12px 28px; border-radius: 10px; text-decoration: none; font-weight: 500; margin: 16px 0;">Verify Email</a>
+                    <p style="color: #6b7280; font-size: 0.82rem; margin-top: 24px;">If you didn't create a 4Eyes account, you can safely ignore this email.</p>
+                    <p style="color: #6b7280; font-size: 0.82rem;">This link expires in 24 hours.</p>
+                </div>
+                """
+            }
+        )
+
+# -------------------------
 # Routes
 # -------------------------
 @app.get("/")
@@ -115,7 +149,7 @@ def root():
     return {"status": "4Eyes API running", "version": "1.0.0"}
 
 @app.post("/auth/signup")
-def signup(data: SignupRequest):
+async def signup(data: SignupRequest):
     try:
         # Validate password
         pw_error = validate_password(data.password)
@@ -135,19 +169,23 @@ def signup(data: SignupRequest):
         if existing.data:
             raise HTTPException(status_code=400, detail="Email already registered")
 
-        # Create user
+        # Generate verification token
+        verification_token = secrets.token_urlsafe(32)
+
+        # Create user (unverified)
         hashed = hash_password(data.password)
         result = supabase.table("users").insert({
             "email": data.email,
             "password": hashed,
             "name": data.name,
+            "verified": False,
+            "verification_token": verification_token,
             "created_at": datetime.utcnow().isoformat()
         }).execute()
 
         user = result.data[0]
-        token = create_token(user["id"], user["email"])
 
-        # Save security questions (answers stored lowercase for case-insensitive matching)
+        # Save security questions
         supabase.table("security_questions").insert({
             "user_id": user["id"],
             "question_1": data.question_1,
@@ -164,10 +202,33 @@ def signup(data: SignupRequest):
             "add_val": 0
         }).execute()
 
-        return {
-            "token": token,
-            "user": {"id": user["id"], "email": user["email"], "name": user["name"]}
-        }
+        # Send verification email
+        await send_verification_email(data.email, data.name, verification_token)
+
+        return {"message": "Account created. Please check your email to verify your account."}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/auth/verify")
+def verify_email(token: str):
+    try:
+        result = supabase.table("users").select("*").eq("verification_token", token).execute()
+        if not result.data:
+            raise HTTPException(status_code=400, detail="Invalid or expired verification link")
+
+        user = result.data[0]
+        if user["verified"]:
+            return {"message": "Email already verified. You can log in."}
+
+        supabase.table("users").update({
+            "verified": True,
+            "verification_token": None
+        }).eq("id", user["id"]).execute()
+
+        return {"message": "Email verified successfully. You can now log in."}
 
     except HTTPException:
         raise
@@ -185,11 +246,38 @@ def login(data: LoginRequest):
         if not verify_password(data.password, user["password"]):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        # Check if email is verified
+        if not user.get("verified", False):
+            raise HTTPException(status_code=403, detail="Please verify your email before logging in. Check your inbox.")
+
         token = create_token(user["id"], user["email"])
         return {
             "token": token,
             "user": {"id": user["id"], "email": user["email"], "name": user["name"]}
         }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/resend-verification")
+async def resend_verification(data: SecurityQuestionsRequest):
+    try:
+        result = supabase.table("users").select("*").eq("email", data.email).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="No account found with that email")
+
+        user = result.data[0]
+        if user.get("verified", False):
+            return {"message": "Email already verified. You can log in."}
+
+        # Generate new token
+        new_token = secrets.token_urlsafe(32)
+        supabase.table("users").update({"verification_token": new_token}).eq("id", user["id"]).execute()
+
+        await send_verification_email(user["email"], user["name"], new_token)
+        return {"message": "Verification email resent. Please check your inbox."}
 
     except HTTPException:
         raise
@@ -222,12 +310,10 @@ def get_security_questions(data: SecurityQuestionsRequest):
 @app.post("/auth/reset-password")
 def reset_password(data: ResetPasswordRequest):
     try:
-        # Validate new password
         pw_error = validate_password(data.new_password)
         if pw_error:
             raise HTTPException(status_code=400, detail=pw_error)
 
-        # Get user
         user_result = supabase.table("users").select("id, password").eq("email", data.email).execute()
         if not user_result.data:
             raise HTTPException(status_code=404, detail="No account found with that email")
@@ -235,24 +321,19 @@ def reset_password(data: ResetPasswordRequest):
         user = user_result.data[0]
         user_id = user["id"]
 
-        # Get security questions and answers
         questions = supabase.table("security_questions").select("*").eq("user_id", user_id).execute()
         if not questions.data:
             raise HTTPException(status_code=404, detail="No security questions found")
 
         q = questions.data[0]
-
-        # Verify answers (case-insensitive)
         if data.answer_1.strip().lower() != q["answer_1"]:
             raise HTTPException(status_code=401, detail="Incorrect answer to question 1")
         if data.answer_2.strip().lower() != q["answer_2"]:
             raise HTTPException(status_code=401, detail="Incorrect answer to question 2")
 
-        # Check it's not the same as current password
         if verify_password(data.new_password, user["password"]):
             raise HTTPException(status_code=400, detail="New password cannot be the same as your current password")
 
-        # Update password
         new_hash = hash_password(data.new_password)
         supabase.table("users").update({"password": new_hash}).eq("id", user_id).execute()
 
