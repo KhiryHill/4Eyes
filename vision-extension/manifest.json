@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "4Eyes",
-  "version": "1.0",
+  "version": "1.1",
   "description": "4Eyes adjusts every website to your eye prescription in real time. Less strain, clearer text, everywhere you browse.",
   "permissions": [
     "activeTab",
