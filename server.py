@@ -68,7 +68,7 @@ class SettingsRequest(BaseModel):
     contrast: Optional[float] = 1.0
     spacing: Optional[int] = 0
     line_height: Optional[float] = 1.6
-
+    font_weight: Optional[int] = 400
 class SecurityQuestionsRequest(BaseModel):
     email: str
 
@@ -377,7 +377,7 @@ def get_settings(user=Depends(verify_token)):
     try:
         result = supabase.table("settings").select("*").eq("user_id", user["user_id"]).execute()
         if not result.data:
-            return {"brightness": 100, "scale": 1.0, "contrast": 1.0, "spacing": 0, "line_height": 1.6}
+            return {"brightness": 100, "scale": 1.0, "contrast": 1.0, "spacing": 0, "line_height": 1.6, "font_weight": 400}
         return result.data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -387,10 +387,14 @@ def save_settings(data: SettingsRequest, user=Depends(verify_token)):
     try:
         existing = supabase.table("settings").select("*").eq("user_id", user["user_id"]).execute()
         payload = {
-            "user_id": user["user_id"],
-            "brightness": data.brightness, "scale": data.scale, "contrast": data.contrast,
-            "spacing": data.spacing, "line_height": data.line_height,
-            "updated_at": datetime.utcnow().isoformat()
+                "user_id": user["user_id"],
+                "brightness": data.brightness,
+                "scale": data.scale,
+                "contrast": data.contrast,
+                "spacing": data.spacing,
+                "line_height": data.line_height,
+                "font_weight": data.font_weight,
+                "updated_at": datetime.utcnow().isoformat()
         }
         if existing.data:
             supabase.table("settings").update(payload).eq("user_id", user["user_id"]).execute()
