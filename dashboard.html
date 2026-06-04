@@ -159,7 +159,7 @@
     <div class="toggle-link">Already have an account? <a onclick="showLogin()">Sign in</a></div>
   </div>
 
-  <!-- Forgot Password Step 1: Email -->
+  <!-- Forgot Password Step 1 -->
   <div class="card" id="forgot-card" style="display:none">
     <div class="card-title">Reset your password</div>
     <div class="alert" id="forgot-alert"></div>
@@ -168,7 +168,7 @@
     <div class="toggle-link"><a onclick="showLogin()">Back to sign in</a></div>
   </div>
 
-  <!-- Forgot Password Step 2: Security Questions + New Password -->
+  <!-- Forgot Password Step 2 -->
   <div class="card" id="reset-card" style="display:none">
     <div class="card-title">Answer your security questions</div>
     <div class="alert" id="reset-alert"></div>
@@ -224,9 +224,9 @@
     </div>
     <div style="margin-bottom:14px">
       <label>ADD (Reading)</label>
-      <input type="number" id="add_val" step="0.25" placeholder="1.00" oninput="onPrescriptionChange(this)" />
+      <input type="number" id="add_val" step="0.25" placeholder="0" oninput="onPrescriptionChange(this)" />
     </div>
-    <div class="axis-indicator" id="axis-indicator"><strong>Axis Insight:</strong> <span id="axis-insight-text"></span></div>
+    <div class="axis-indicator" id="axis-indicator"><strong>Vision Insight:</strong> <span id="axis-insight-text"></span></div>
     <div class="settings-summary" id="settings-summary" style="display:none">
       <div class="chip"><div class="chip-label">Brightness</div><div class="chip-value" id="chip-brightness">--</div></div>
       <div class="chip"><div class="chip-label">Contrast</div><div class="chip-value" id="chip-contrast">--</div></div>
@@ -277,6 +277,7 @@
   let user = JSON.parse(localStorage.getItem('4eyes_user') || 'null');
   let debounceTimer = null;
   let activeFont = localStorage.getItem('4eyes_font') || '';
+  let currentFontWeight = 400;
 
   const FONTS = {
     atkinson: { name: 'Atkinson Hyperlegible', family: "'Atkinson Hyperlegible', sans-serif", reason: 'Designed for low vision — unique letterforms reduce misreading similar characters (b/d, p/q)', bestFor: 'myopia', preview: 'Aa Bb Cc 123' },
@@ -289,7 +290,6 @@
   // Init
   // -------------------------
   window.onload = async () => {
-    // Check for email verification token in URL
     const urlParams = new URLSearchParams(window.location.search);
     const verifyToken = urlParams.get('verify');
 
@@ -345,7 +345,7 @@
   }
 
   // -------------------------
-  // Password & Email Validation
+  // Validation
   // -------------------------
   function validatePassword(password) {
     if (password.length < 5) return 'Password must be at least 5 characters long';
@@ -409,8 +409,6 @@
       });
       const data = await res.json();
       if (!res.ok) return showAlert('signup-alert', data.detail || 'Signup failed', 'error');
-
-      // Show verification message — do NOT log user in
       hideAllCards();
       document.getElementById('auth-section').style.display = 'block';
       showAlert('login-alert', 'Account created! A verification link has been sent to ' + email + '. Please verify your email before logging in.', 'success');
@@ -488,7 +486,7 @@
   // -------------------------
   function logout() {
     localStorage.removeItem('4eyes_token'); localStorage.removeItem('4eyes_user'); localStorage.removeItem('4eyes_font');
-    token = null; user = null; activeFont = '';
+    token = null; user = null; activeFont = ''; currentFontWeight = 400;
     sendToExtension('LOGOUT');
     document.getElementById('auth-section').style.display = 'block';
     document.getElementById('dashboard-section').style.display = 'none';
@@ -545,6 +543,7 @@
         document.getElementById('contrast').value = Math.round(data.contrast * 10);
         document.getElementById('spacing').value = data.spacing;
         document.getElementById('lineheight').value = Math.round(data.line_height * 10);
+        if (data.font_weight) currentFontWeight = data.font_weight;
         updateSlider('brightness', data.brightness, '%');
         updateSlider('contrast', data.contrast.toFixed(1), 'x');
         updateSlider('spacing', data.spacing, 'px');
@@ -564,7 +563,8 @@
           scale: 1.0,
           contrast: parseFloat(document.getElementById('contrast').value) / 10,
           spacing: parseInt(document.getElementById('spacing').value),
-          line_height: parseFloat(document.getElementById('lineheight').value) / 10
+          line_height: parseFloat(document.getElementById('lineheight').value) / 10,
+          font_weight: currentFontWeight
         })
       });
     } catch (e) { console.log('Could not save settings', e); }
@@ -583,14 +583,14 @@
       if (font.bestFor === 'presbyopia' && addVal > 0.5) score += 3 + addVal * 0.5;
       return { key, font, score };
     });
-    return scored.sort((a, b) => b.score - a.score).slice(0, 3);
+    return scored.sort((a, b) => b.score - a.score).slice(0, 4);
   }
 
   function renderFontRecommendations(recommendations) {
     const container = document.getElementById('font-recommendations');
     document.getElementById('font-card').style.display = 'block';
     container.innerHTML = '';
-    const ranks = ['Best Match', '2nd', '3rd'];
+    const ranks = ['Best Match', '2nd', '3rd', '4th'];
     recommendations.forEach(({ key, font }, i) => {
       const div = document.createElement('div');
       div.className = 'font-card' + (activeFont === font.family ? ' active' : '');
@@ -649,10 +649,20 @@
     const avgCyl = (Math.abs(rCyl) + Math.abs(lCyl)) / 2;
     const avgAxis = (rAxis + lAxis) / 2;
 
+    // Brightness
     let brightness = 100;
     if (avgSph < 0) brightness = Math.max(70, Math.round(100 + avgSph * 3));
 
+    // Contrast
     let contrast = Math.min(1.5, 1.0 + avgCyl * 0.15);
+
+    // Font Weight
+    currentFontWeight = 400;
+    if (avgSph < -2) currentFontWeight = 500;
+    if (avgSph < -4) currentFontWeight = 600;
+    if (avgSph > 2) currentFontWeight = 300;
+
+    // Letter Spacing & Line Height
     let spacing = 0;
     let lineHeight = 1.6;
 
@@ -703,48 +713,45 @@
   }
 
   function getAxisInsight(rAxis, lAxis, rCyl, lCyl) {
-  const avgAxis = (rAxis + lAxis) / 2;
-  const avgCyl = (Math.abs(rCyl) + Math.abs(lCyl)) / 2;
-  const rSph = parseFloat(document.getElementById('right_sph').value) || 0;
-  const lSph = parseFloat(document.getElementById('left_sph').value) || 0;
-  const avgSph = (rSph + lSph) / 2;
-  const addVal = parseFloat(document.getElementById('add_val').value) || 0;
+    const avgAxis = (rAxis + lAxis) / 2;
+    const avgCyl = (Math.abs(rCyl) + Math.abs(lCyl)) / 2;
+    const rSph = parseFloat(document.getElementById('right_sph').value) || 0;
+    const lSph = parseFloat(document.getElementById('left_sph').value) || 0;
+    const avgSph = (rSph + lSph) / 2;
+    const addVal = parseFloat(document.getElementById('add_val').value) || 0;
 
-  const conditions = [];
+    const conditions = [];
 
-  // Myopia
-  if (avgSph < -0.5) {
-    if (avgSph < -4) conditions.push('Severe myopia detected. Brightness reduced and contrast increased to reduce glare.');
-    else if (avgSph < -2) conditions.push('Moderate myopia detected. Brightness reduced to minimize screen glare.');
-    else conditions.push('Mild myopia detected. Slight brightness reduction applied.');
-  }
-
-  // Hyperopia
-  if (avgSph > 0.5) {
-    if (avgSph > 3) conditions.push('Severe hyperopia detected. High brightness maintained with open letterform fonts recommended.');
-    else if (avgSph > 1.5) conditions.push('Moderate hyperopia detected. Brightness optimized for close reading comfort.');
-    else conditions.push('Mild hyperopia detected. Display optimized for near focus.');
-  }
-
-  // Astigmatism
-  if (avgCyl > 0.5) {
-    if (avgAxis >= 160 || avgAxis <= 20) {
-      conditions.push('Horizontal astigmatism detected. Line height and letter spacing increased for easier line tracking.');
-    } else if (avgAxis >= 70 && avgAxis <= 110) {
-      conditions.push('Vertical astigmatism detected. Letter spacing increased for clearer character separation.');
-    } else {
-      conditions.push('Oblique astigmatism detected. Both spacing and line height adjusted for comfort.');
+    if (avgSph < -0.5) {
+      if (avgSph < -4) conditions.push('Severe myopia detected. Brightness reduced and contrast increased to reduce glare.');
+      else if (avgSph < -2) conditions.push('Moderate myopia detected. Brightness reduced to minimize screen glare.');
+      else conditions.push('Mild myopia detected. Slight brightness reduction applied.');
     }
+
+    if (avgSph > 0.5) {
+      if (avgSph > 3) conditions.push('Severe hyperopia detected. High brightness maintained with open letterform fonts recommended.');
+      else if (avgSph > 1.5) conditions.push('Moderate hyperopia detected. Brightness optimized for close reading comfort.');
+      else conditions.push('Mild hyperopia detected. Display optimized for near focus.');
+    }
+
+    if (avgCyl > 0.5) {
+      if (avgAxis >= 160 || avgAxis <= 20) {
+        conditions.push('Horizontal astigmatism detected. Line height and letter spacing increased for easier line tracking.');
+      } else if (avgAxis >= 70 && avgAxis <= 110) {
+        conditions.push('Vertical astigmatism detected. Letter spacing increased for clearer character separation.');
+      } else {
+        conditions.push('Oblique astigmatism detected. Both spacing and line height adjusted for comfort.');
+      }
+    }
+
+    if (addVal > 0.5) {
+      if (addVal >= 2) conditions.push('Significant presbyopia detected. Line height increased and serif fonts recommended for reading comfort.');
+      else conditions.push('Presbyopia detected. Line height adjusted to ease reading strain.');
+    }
+
+    return conditions.length > 0 ? conditions.join(' ') : null;
   }
 
-  // Presbyopia
-  if (addVal > 0.5) {
-    if (addVal >= 2) conditions.push('Significant presbyopia detected. Line height increased and serif fonts recommended for reading comfort.');
-    else conditions.push('Presbyopia detected. Line height adjusted to ease reading strain.');
-  }
-
-  return conditions.length > 0 ? conditions.join(' ') : null;
-}
   function updateSlider(id, value, unit) { document.getElementById(id + '-val').textContent = value + unit; }
 
   function updatePreview() {
@@ -756,6 +763,7 @@
     const box = document.getElementById('preview-box');
     preview.style.letterSpacing = spacing + 'px';
     preview.style.lineHeight = lineHeight;
+    preview.style.fontWeight = currentFontWeight;
     if (activeFont) preview.style.fontFamily = activeFont;
     box.style.filter = `contrast(${contrast}) brightness(${brightness / 100})`;
   }
