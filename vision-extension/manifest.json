@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "4Eyes",
   "version": "1.0",
-  "description": "See the web the way your eyes were meant to. 4Eyes adapts your entire display to your eye prescription in real time — sharper text, perfect brightness, and comfortable contrast on every screen, every app, every website.",
+  "description": "4Eyes adjusts every website to your eye prescription in real time. Less strain, clearer text, everywhere you browse.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -42,7 +42,8 @@
   },
   "externally_connectable": {
     "matches": [
-      "https://khiryhill.github.io/*"
+      "https://khiryhill.github.io/*",
+      "https://4eyeslux.io/*"
     ]
   }
 }
