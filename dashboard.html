@@ -703,13 +703,48 @@
   }
 
   function getAxisInsight(rAxis, lAxis, rCyl, lCyl) {
-    const avgAxis = (rAxis + lAxis) / 2;
-    if (Math.abs(rCyl) === 0 && Math.abs(lCyl) === 0) return null;
-    if (avgAxis >= 160 || avgAxis <= 20) return 'Horizontal astigmatism detected. Line height and letter spacing increased for easier line tracking.';
-    if (avgAxis >= 70 && avgAxis <= 110) return 'Vertical astigmatism detected. Letter spacing increased for clearer character separation.';
-    return 'Oblique astigmatism detected. Both spacing and line height adjusted for comfort.';
+  const avgAxis = (rAxis + lAxis) / 2;
+  const avgCyl = (Math.abs(rCyl) + Math.abs(lCyl)) / 2;
+  const rSph = parseFloat(document.getElementById('right_sph').value) || 0;
+  const lSph = parseFloat(document.getElementById('left_sph').value) || 0;
+  const avgSph = (rSph + lSph) / 2;
+  const addVal = parseFloat(document.getElementById('add_val').value) || 0;
+
+  const conditions = [];
+
+  // Myopia
+  if (avgSph < -0.5) {
+    if (avgSph < -4) conditions.push('Severe myopia detected. Brightness reduced and contrast increased to reduce glare.');
+    else if (avgSph < -2) conditions.push('Moderate myopia detected. Brightness reduced to minimize screen glare.');
+    else conditions.push('Mild myopia detected. Slight brightness reduction applied.');
   }
 
+  // Hyperopia
+  if (avgSph > 0.5) {
+    if (avgSph > 3) conditions.push('Severe hyperopia detected. High brightness maintained with open letterform fonts recommended.');
+    else if (avgSph > 1.5) conditions.push('Moderate hyperopia detected. Brightness optimized for close reading comfort.');
+    else conditions.push('Mild hyperopia detected. Display optimized for near focus.');
+  }
+
+  // Astigmatism
+  if (avgCyl > 0.5) {
+    if (avgAxis >= 160 || avgAxis <= 20) {
+      conditions.push('Horizontal astigmatism detected. Line height and letter spacing increased for easier line tracking.');
+    } else if (avgAxis >= 70 && avgAxis <= 110) {
+      conditions.push('Vertical astigmatism detected. Letter spacing increased for clearer character separation.');
+    } else {
+      conditions.push('Oblique astigmatism detected. Both spacing and line height adjusted for comfort.');
+    }
+  }
+
+  // Presbyopia
+  if (addVal > 0.5) {
+    if (addVal >= 2) conditions.push('Significant presbyopia detected. Line height increased and serif fonts recommended for reading comfort.');
+    else conditions.push('Presbyopia detected. Line height adjusted to ease reading strain.');
+  }
+
+  return conditions.length > 0 ? conditions.join(' ') : null;
+}
   function updateSlider(id, value, unit) { document.getElementById(id + '-val').textContent = value + unit; }
 
   function updatePreview() {
