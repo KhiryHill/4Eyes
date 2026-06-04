@@ -40,15 +40,17 @@ enableToggle.addEventListener("change", () => {
   chrome.storage.local.set({ visionEnabled: enabled });
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, {
-      type: enabled ? "VISION_ENABLE" : "VISION_DISABLE"
-    });
+    if (tabs[0]) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        type: enabled ? "VISION_ENABLE" : "VISION_DISABLE"
+      });
+    }
   });
 });
 
 // Open dashboard
 document.getElementById("open-app").addEventListener("click", () => {
-  chrome.tabs.create({ url: "https://khiryhill.github.io/4Eyes/dashboard.html" });
+  chrome.tabs.create({ url: "https://4eyeslux.io/dashboard.html" });
 });
 
 // Refresh settings
