@@ -75,10 +75,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse({ ok: true });
     return true;
   }
-  if (msg.type === 'VISION_FONT_UPDATE') {
+ if (msg.type === 'VISION_FONT_UPDATE') {
     chrome.storage.local.set({ visionFont: msg.fontFamily });
     broadcastToTabs({ type: 'VISION_FONT_UPDATE', fontFamily: msg.fontFamily });
     sendResponse({ ok: true });
     return true;
-  }
+}
 });
