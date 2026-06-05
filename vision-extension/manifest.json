@@ -17,16 +17,17 @@
     "service_worker": "background.js"
   },
   "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_end"
-    }
-  ],
+  {
+    "matches": ["<all_urls>"],
+    "js": ["content.js"],
+    "run_at": "document_end"
+  },
+  {
+    "matches": ["https://4eyeslux.io/*", "https://khiryhill.github.io/*"],
+    "js": ["token_bridge.js"],
+    "run_at": "document_end"
+  }
+],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
