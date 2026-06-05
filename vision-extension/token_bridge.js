@@ -1,5 +1,5 @@
 // token_bridge.js
-// Reads token from dashboard localStorage and sends to extension
+// Bridges localStorage and extension messaging
 
 function syncToken() {
   const token = localStorage.getItem('4eyes_token');
@@ -8,8 +8,23 @@ function syncToken() {
   }
 }
 
+function syncFont() {
+  const font = localStorage.getItem('4eyes_font');
+  chrome.runtime.sendMessage({ 
+    type: 'VISION_FONT_UPDATE', 
+    fontFamily: font || '' 
+  });
+}
+
 // Sync on page load
 syncToken();
+syncFont();
 
-// Sync every 2 seconds in case user just logged in
-setInterval(syncToken, 2000);
+// Watch localStorage for changes
+window.addEventListener('storage', (e) => {
+  if (e.key === '4eyes_token') syncToken();
+  if (e.key === '4eyes_font') syncFont();
+});
+
+// Also poll every second for font changes
+setInterval(syncFont, 1000);
