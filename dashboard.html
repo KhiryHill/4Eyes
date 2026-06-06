@@ -239,7 +239,6 @@
   <div class="card" id="font-card" style="display:none">
     <div class="card-title">Recommended Fonts for Your Prescription</div>
     <div id="font-recommendations"></div>
-    <button class="no-font-btn" onclick="clearFont()">Use website's default font</button>
   </div>
 
   <div class="card">
@@ -616,13 +615,6 @@
     sendToExtension('VISION_FONT_UPDATE', { fontFamily: font.family });
   }
 
-  function clearFont() {
-    activeFont = '';
-    localStorage.removeItem('4eyes_font');
-    document.querySelectorAll('.font-card').forEach(c => c.classList.remove('active'));
-    document.getElementById('preview-text').style.fontFamily = '';
-    sendToExtension('VISION_FONT_UPDATE', { fontFamily: '' });
-  }
 
   // -------------------------
   // Prescription Logic
