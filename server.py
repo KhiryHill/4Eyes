@@ -31,7 +31,7 @@ app.add_middleware(
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 JWT_SECRET = os.environ.get("JWT_SECRET", "4eyes-secret-key-change-in-production")
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")  # <-- ADD YOUR RESEND API KEY TO RAILWAY AS RESEND_API_KEY
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 APP_URL = os.environ.get("APP_URL", "https://4eyeslux.io")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -69,6 +69,8 @@ class SettingsRequest(BaseModel):
     spacing: Optional[int] = 0
     line_height: Optional[float] = 1.6
     font_weight: Optional[int] = 400
+    lens_coating: Optional[str] = 'none'
+
 class SecurityQuestionsRequest(BaseModel):
     email: str
 
@@ -151,12 +153,10 @@ def root():
 @app.post("/auth/signup")
 async def signup(data: SignupRequest):
     try:
-        # Validate password
         pw_error = validate_password(data.password)
         if pw_error:
             raise HTTPException(status_code=400, detail=pw_error)
 
-        # Validate security questions
         if not data.question_1 or not data.answer_1:
             raise HTTPException(status_code=400, detail="Security question 1 is required")
         if not data.question_2 or not data.answer_2:
@@ -164,15 +164,12 @@ async def signup(data: SignupRequest):
         if data.question_1 == data.question_2:
             raise HTTPException(status_code=400, detail="Please choose two different security questions")
 
-        # Check if user exists
         existing = supabase.table("users").select("*").eq("email", data.email).execute()
         if existing.data:
             raise HTTPException(status_code=400, detail="Email already registered")
 
-        # Generate verification token
         verification_token = secrets.token_urlsafe(32)
 
-        # Create user (unverified)
         hashed = hash_password(data.password)
         result = supabase.table("users").insert({
             "email": data.email,
@@ -185,7 +182,6 @@ async def signup(data: SignupRequest):
 
         user = result.data[0]
 
-        # Save security questions
         supabase.table("security_questions").insert({
             "user_id": user["id"],
             "question_1": data.question_1,
@@ -194,7 +190,6 @@ async def signup(data: SignupRequest):
             "answer_2": data.answer_2.strip().lower()
         }).execute()
 
-        # Create empty prescription
         supabase.table("prescriptions").insert({
             "user_id": user["id"],
             "right_sph": 0, "right_cyl": 0, "right_axis": 90,
@@ -202,7 +197,6 @@ async def signup(data: SignupRequest):
             "add_val": 0
         }).execute()
 
-        # Send verification email
         await send_verification_email(data.email, data.name, verification_token)
 
         return {"message": "Account created. Please check your email to verify your account."}
@@ -246,7 +240,6 @@ def login(data: LoginRequest):
         if not verify_password(data.password, user["password"]):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        # Check if email is verified
         if not user.get("verified", False):
             raise HTTPException(status_code=403, detail="Please verify your email before logging in. Check your inbox.")
 
@@ -272,7 +265,6 @@ async def resend_verification(data: SecurityQuestionsRequest):
         if user.get("verified", False):
             return {"message": "Email already verified. You can log in."}
 
-        # Generate new token
         new_token = secrets.token_urlsafe(32)
         supabase.table("users").update({"verification_token": new_token}).eq("id", user["id"]).execute()
 
@@ -377,7 +369,7 @@ def get_settings(user=Depends(verify_token)):
     try:
         result = supabase.table("settings").select("*").eq("user_id", user["user_id"]).execute()
         if not result.data:
-            return {"brightness": 100, "scale": 1.0, "contrast": 1.0, "spacing": 0, "line_height": 1.6, "font_weight": 400}
+            return {"brightness": 100, "scale": 1.0, "contrast": 1.0, "spacing": 0, "line_height": 1.6, "font_weight": 400, "lens_coating": "none"}
         return result.data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -387,14 +379,15 @@ def save_settings(data: SettingsRequest, user=Depends(verify_token)):
     try:
         existing = supabase.table("settings").select("*").eq("user_id", user["user_id"]).execute()
         payload = {
-                "user_id": user["user_id"],
-                "brightness": data.brightness,
-                "scale": data.scale,
-                "contrast": data.contrast,
-                "spacing": data.spacing,
-                "line_height": data.line_height,
-                "font_weight": data.font_weight,
-                "updated_at": datetime.utcnow().isoformat()
+            "user_id": user["user_id"],
+            "brightness": data.brightness,
+            "scale": data.scale,
+            "contrast": data.contrast,
+            "spacing": data.spacing,
+            "line_height": data.line_height,
+            "font_weight": data.font_weight,
+            "lens_coating": data.lens_coating,
+            "updated_at": datetime.utcnow().isoformat()
         }
         if existing.data:
             supabase.table("settings").update(payload).eq("user_id", user["user_id"]).execute()

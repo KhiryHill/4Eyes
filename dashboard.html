@@ -91,9 +91,14 @@
     .font-reason { font-size: 0.75rem; color: var(--muted); }
     .font-preview-text { font-size: 1rem; color: var(--accent2); margin-left: 12px; white-space: nowrap; }
     .font-rank { display: inline-block; background: rgba(91,141,238,0.15); color: var(--accent); font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-    .no-font-btn { background: none; border: 1px dashed var(--border); border-radius: 10px; padding: 10px; color: var(--muted); font-size: 0.78rem; cursor: pointer; font-family: 'DM Sans', sans-serif; width: 100%; transition: all 0.2s; margin-top: 4px; }
-    .no-font-btn:hover { border-color: var(--muted); color: var(--text); }
     .password-hint { font-size: 0.72rem; color: var(--muted); margin-top: 5px; }
+    .lens-option { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .lens-option:hover { border-color: var(--accent); background: rgba(91,141,238,0.05); }
+    .lens-option.active { border-color: var(--accent); background: rgba(91,141,238,0.1); }
+    .lens-option-left { flex: 1; }
+    .lens-option-name { font-size: 0.88rem; color: var(--text); font-weight: 500; margin-bottom: 3px; }
+    .lens-option-desc { font-size: 0.75rem; color: var(--muted); }
+    .lens-radio { font-size: 1.2rem; color: var(--accent); margin-left: 12px; }
     #auth-section { width: 100%; max-width: 480px; }
     #dashboard-section { width: 100%; display: none; flex-direction: column; align-items: center; }
   </style>
@@ -204,6 +209,7 @@
 
   <div class="live-badge"><div class="live-dot"></div>Live Adjustment</div>
 
+  <!-- Prescription -->
   <div class="card">
     <div class="card-title">Prescription — adjusts as you type</div>
     <div class="eye-section">
@@ -241,6 +247,45 @@
     <div id="font-recommendations"></div>
   </div>
 
+  <!-- Lens Coating Correction -->
+  <div class="card">
+    <div class="card-title">Lens Coating Correction</div>
+    <p style="font-size:0.78rem; color:var(--muted); margin-bottom:16px;">Select your lens coating to correct color distortion caused by your lenses.</p>
+
+    <div class="lens-option active" id="lens-opt-none" onclick="selectLensCoating('none', this)">
+      <div class="lens-option-left">
+        <div class="lens-option-name">No Coating</div>
+        <div class="lens-option-desc">Standard lenses with no special coating</div>
+      </div>
+      <div class="lens-radio" id="lens-none">●</div>
+    </div>
+
+    <div class="lens-option" id="lens-opt-blue_light" onclick="selectLensCoating('blue_light', this)">
+      <div class="lens-option-left">
+        <div class="lens-option-name">Blue Light Blocking</div>
+        <div class="lens-option-desc">Corrects yellow tint from blue light blocking coatings</div>
+      </div>
+      <div class="lens-radio" id="lens-blue_light">○</div>
+    </div>
+
+    <div class="lens-option" id="lens-opt-uv" onclick="selectLensCoating('uv', this)">
+      <div class="lens-option-left">
+        <div class="lens-option-name">UV Coating</div>
+        <div class="lens-option-desc">Corrects slight color shift from UV protective coatings</div>
+      </div>
+      <div class="lens-radio" id="lens-uv">○</div>
+    </div>
+
+    <div class="lens-option" id="lens-opt-photochromic" onclick="selectLensCoating('photochromic', this)">
+      <div class="lens-option-left">
+        <div class="lens-option-name">Photochromic / Transition</div>
+        <div class="lens-option-desc">Adjusts brightness based on time of day for transition lenses</div>
+      </div>
+      <div class="lens-radio" id="lens-photochromic">○</div>
+    </div>
+  </div>
+
+  <!-- Manual Overrides -->
   <div class="card">
     <div class="card-title">Manual Overrides</div>
     <div class="slider-row">
@@ -261,6 +306,7 @@
     </div>
   </div>
 
+  <!-- Preview -->
   <div class="card">
     <div class="card-title">Readability Preview</div>
     <div class="preview-box" id="preview-box">
@@ -277,6 +323,7 @@
   let debounceTimer = null;
   let activeFont = localStorage.getItem('4eyes_font') || '';
   let currentFontWeight = 400;
+  let currentLensCoating = localStorage.getItem('4eyes_lens_coating') || 'none';
 
   const FONTS = {
     atkinson: { name: 'Atkinson Hyperlegible', family: "'Atkinson Hyperlegible', sans-serif", reason: 'Designed for low vision — unique letterforms reduce misreading similar characters (b/d, p/q)', bestFor: 'myopia', preview: 'Aa Bb Cc 123' },
@@ -310,6 +357,7 @@
 
     if (token && user) { showDashboard(); loadPrescription(); loadSettings(); }
     updatePreview();
+    loadLensCoatingUI(currentLensCoating);
   };
 
   // -------------------------
@@ -484,12 +532,45 @@
   // Logout
   // -------------------------
   function logout() {
-    localStorage.removeItem('4eyes_token'); localStorage.removeItem('4eyes_user'); localStorage.removeItem('4eyes_font');
-    token = null; user = null; activeFont = ''; currentFontWeight = 400;
+    localStorage.removeItem('4eyes_token');
+    localStorage.removeItem('4eyes_user');
+    localStorage.removeItem('4eyes_font');
+    localStorage.removeItem('4eyes_lens_coating');
+    token = null; user = null; activeFont = ''; currentFontWeight = 400; currentLensCoating = 'none';
     sendToExtension('LOGOUT');
     document.getElementById('auth-section').style.display = 'block';
     document.getElementById('dashboard-section').style.display = 'none';
     showLogin();
+  }
+
+  // -------------------------
+  // Lens Coating
+  // -------------------------
+  function selectLensCoating(coating, el) {
+    currentLensCoating = coating;
+    localStorage.setItem('4eyes_lens_coating', coating);
+    document.querySelectorAll('.lens-option').forEach(o => {
+      o.classList.remove('active');
+      const radio = o.querySelector('.lens-radio');
+      if (radio) radio.textContent = '○';
+    });
+    el.classList.add('active');
+    document.getElementById('lens-' + coating).textContent = '●';
+    saveSettings();
+  }
+
+  function loadLensCoatingUI(coating) {
+    currentLensCoating = coating || 'none';
+    localStorage.setItem('4eyes_lens_coating', currentLensCoating);
+    document.querySelectorAll('.lens-option').forEach(o => {
+      o.classList.remove('active');
+      const radio = o.querySelector('.lens-radio');
+      if (radio) radio.textContent = '○';
+    });
+    const activeOpt = document.getElementById('lens-opt-' + currentLensCoating);
+    const activeRadio = document.getElementById('lens-' + currentLensCoating);
+    if (activeOpt) activeOpt.classList.add('active');
+    if (activeRadio) activeRadio.textContent = '●';
   }
 
   // -------------------------
@@ -543,6 +624,7 @@
         document.getElementById('spacing').value = data.spacing;
         document.getElementById('lineheight').value = Math.round(data.line_height * 10);
         if (data.font_weight) currentFontWeight = data.font_weight;
+        if (data.lens_coating) loadLensCoatingUI(data.lens_coating);
         updateSlider('brightness', data.brightness, '%');
         updateSlider('contrast', data.contrast.toFixed(1), 'x');
         updateSlider('spacing', data.spacing, 'px');
@@ -563,7 +645,8 @@
           contrast: parseFloat(document.getElementById('contrast').value) / 10,
           spacing: parseInt(document.getElementById('spacing').value),
           line_height: parseFloat(document.getElementById('lineheight').value) / 10,
-          font_weight: currentFontWeight
+          font_weight: currentFontWeight,
+          lens_coating: currentLensCoating
         })
       });
     } catch (e) { console.log('Could not save settings', e); }
@@ -612,9 +695,7 @@
     document.querySelectorAll('.font-card').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     document.getElementById('preview-text').style.fontFamily = font.family;
-    sendToExtension('VISION_FONT_UPDATE', { fontFamily: font.family });
   }
-
 
   // -------------------------
   // Prescription Logic
@@ -641,20 +722,16 @@
     const avgCyl = (Math.abs(rCyl) + Math.abs(lCyl)) / 2;
     const avgAxis = (rAxis + lAxis) / 2;
 
-    // Brightness
     let brightness = 100;
     if (avgSph < 0) brightness = Math.max(70, Math.round(100 + avgSph * 3));
 
-    // Contrast
     let contrast = Math.min(1.5, 1.0 + avgCyl * 0.15);
 
-    // Font Weight
     currentFontWeight = 400;
     if (avgSph < -2) currentFontWeight = 500;
     if (avgSph < -4) currentFontWeight = 600;
     if (avgSph > 2) currentFontWeight = 300;
 
-    // Letter Spacing & Line Height
     let spacing = 0;
     let lineHeight = 1.6;
 
@@ -711,7 +788,6 @@
     const lSph = parseFloat(document.getElementById('left_sph').value) || 0;
     const avgSph = (rSph + lSph) / 2;
     const addVal = parseFloat(document.getElementById('add_val').value) || 0;
-
     const conditions = [];
 
     if (avgSph < -0.5) {
@@ -719,23 +795,16 @@
       else if (avgSph < -2) conditions.push('Moderate myopia detected. Brightness reduced to minimize screen glare.');
       else conditions.push('Mild myopia detected. Slight brightness reduction applied.');
     }
-
     if (avgSph > 0.5) {
       if (avgSph > 3) conditions.push('Severe hyperopia detected. High brightness maintained with open letterform fonts recommended.');
       else if (avgSph > 1.5) conditions.push('Moderate hyperopia detected. Brightness optimized for close reading comfort.');
       else conditions.push('Mild hyperopia detected. Display optimized for near focus.');
     }
-
     if (avgCyl > 0.5) {
-      if (avgAxis >= 160 || avgAxis <= 20) {
-        conditions.push('Horizontal astigmatism detected. Line height and letter spacing increased for easier line tracking.');
-      } else if (avgAxis >= 70 && avgAxis <= 110) {
-        conditions.push('Vertical astigmatism detected. Letter spacing increased for clearer character separation.');
-      } else {
-        conditions.push('Oblique astigmatism detected. Both spacing and line height adjusted for comfort.');
-      }
+      if (avgAxis >= 160 || avgAxis <= 20) conditions.push('Horizontal astigmatism detected. Line height and letter spacing increased for easier line tracking.');
+      else if (avgAxis >= 70 && avgAxis <= 110) conditions.push('Vertical astigmatism detected. Letter spacing increased for clearer character separation.');
+      else conditions.push('Oblique astigmatism detected. Both spacing and line height adjusted for comfort.');
     }
-
     if (addVal > 0.5) {
       if (addVal >= 2) conditions.push('Significant presbyopia detected. Line height increased and serif fonts recommended for reading comfort.');
       else conditions.push('Presbyopia detected. Line height adjusted to ease reading strain.');
