@@ -65,7 +65,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
   if (msg.type === 'LOGOUT') {
-    chrome.storage.local.remove(['4eyes_token', 'visionSettings', 'visionConnected', 'visionFont'], () => {
+    chrome.storage.local.remove(['4eyes_token', 'visionSettings', 'visionConnected', 'visionFont', 'visionLensCoating'], () => {
       sendResponse({ ok: true });
     });
     return true;
@@ -79,6 +79,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     console.log('Font update received:', msg.fontFamily);
     chrome.storage.local.set({ visionFont: msg.fontFamily });
     broadcastToTabs({ type: 'VISION_FONT_UPDATE', fontFamily: msg.fontFamily });
+    sendResponse({ ok: true });
+    return true;
+  }
+  if (msg.type === 'VISION_LENS_UPDATE') {
+    console.log('Lens coating update received:', msg.coating);
+    chrome.storage.local.set({ visionLensCoating: msg.coating });
+    broadcastToTabs({ type: 'VISION_LENS_UPDATE', coating: msg.coating });
     sendResponse({ ok: true });
     return true;
   }
